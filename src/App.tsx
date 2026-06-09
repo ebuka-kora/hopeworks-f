@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider, useToast } from './context/ToastContext';
+import { LoadingOverlayProvider } from './context/LoadingOverlayContext';
+import { NotificationsProvider } from './context/NotificationsContext';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { Index } from './pages/Index';
@@ -30,6 +32,8 @@ import {
   viewToPanel,
 } from './lib/roleAccess';
 import { UserRole } from './types';
+import { clearNav, readInitialNav, saveNav } from './lib/navPersistence';
+import type { DashboardPanel, DeskTab } from './lib/roleAccess';
 
 type ProjectDetailAction = 'donate' | 'volunteer';
 
@@ -42,9 +46,11 @@ type RegisterDefaults = {
 function AppContent() {
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
-  const [view, setView] = useState<string>('home');
-  const [selectedProjectId, setSelectedProjectId] = useState<string>("");
-  const [dashboardPanel, setDashboardPanel] = useState<string | undefined>();
+  const initialNav = readInitialNav();
+  const [view, setView] = useState<string>(initialNav.view);
+  const [selectedProjectId, setSelectedProjectId] = useState<string>(initialNav.selectedProjectId ?? '');
+  const [dashboardPanel, setDashboardPanel] = useState<string | undefined>(initialNav.dashboardPanel);
+  const [activeDesk, setActiveDesk] = useState<string | undefined>(initialNav.activeDesk);
   const [registerDefaults, setRegisterDefaults] = useState<RegisterDefaults | null>(null);
   const [projectDetailAction, setProjectDetailAction] = useState<ProjectDetailAction | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -106,6 +112,41 @@ function AppContent() {
       window.history.replaceState(null, '', window.location.pathname);
     }
   }, [user, authLoading]);
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (user && (view === 'dashboard' || view === 'all_dashboards') && dashboardPanel) {
+      const safe = sanitizePanelForRoles(user.roles, dashboardPanel as DashboardPanel);
+      if (safe !== dashboardPanel) setDashboardPanel(safe);
+    }
+  }, [authLoading, user, view, dashboardPanel]);
+
+  useEffect(() => {
+    const isDashboard = view === 'dashboard' || view === 'all_dashboards';
+    saveNav({
+      view,
+      dashboardPanel: isDashboard ? dashboardPanel ?? 'desk' : undefined,
+      selectedProjectId: selectedProjectId || undefined,
+      activeDesk: isDashboard ? activeDesk : undefined,
+    });
+  }, [view, dashboardPanel, selectedProjectId, activeDesk]);
+
+  const handleDashboardStateChange = useCallback(
+    ({
+      panel,
+      activeTab,
+      selectedProjectId: projectId,
+    }: {
+      panel: DashboardPanel;
+      activeTab: DeskTab;
+      selectedProjectId: string;
+    }) => {
+      setDashboardPanel(panel);
+      setActiveDesk(activeTab);
+      setSelectedProjectId(projectId);
+    },
+    []
+  );
 
   const handleNavigate = (newView: string, id?: string) => {
     if (newView === 'create_campaign') {
@@ -185,6 +226,10 @@ function AppContent() {
 
     setRegisterDefaults(null);
 
+    if (newView === 'home') {
+      clearNav();
+    }
+
     if (user && WORKSPACE_VIEWS.has(newView)) {
       setView('dashboard');
       const rawPanel = viewToPanel(newView);
@@ -253,7 +298,7 @@ function AppContent() {
                 <DashboardShell
                   onNavigate={handleNavigate}
                   initialPanel={
-                    dashboardPanel as
+                    (dashboardPanel as
                       | 'desk'
                       | 'explore'
                       | 'project_detail'
@@ -261,11 +306,13 @@ function AppContent() {
                       | 'notifications'
                       | 'profile'
                       | 'availability'
-                      | undefined
+                      | undefined) ?? 'desk'
                   }
+                  initialActiveTab={activeDesk as DeskTab | undefined}
                   initialProjectId={selectedProjectId || undefined}
                   initialProjectAction={projectDetailAction}
                   onProjectActionConsumed={() => setProjectDetailAction(null)}
+                  onDashboardStateChange={handleDashboardStateChange}
                 />
               )
             )}
@@ -333,9 +380,13 @@ export default function App() {
   return (
     <div className="h-full min-h-0">
       <AuthProvider>
-        <ToastProvider>
-          <AppContent />
-        </ToastProvider>
+        <NotificationsProvider>
+          <LoadingOverlayProvider>
+            <ToastProvider>
+              <AppContent />
+            </ToastProvider>
+          </LoadingOverlayProvider>
+        </NotificationsProvider>
       </AuthProvider>
     </div>
   );

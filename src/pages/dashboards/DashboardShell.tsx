@@ -4,6 +4,7 @@ import { dashboardPanelVariants, resolveVariants, springBouncy } from '../../lib
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { useAuth } from '../../context/AuthContext';
 import { PulseBeatLoader } from '../../components/PulseBeatLoader';
+import { useLoadingOverlay } from '../../context/LoadingOverlayContext';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { useProjectsStore } from '../../hooks/useProjectsStore';
 import { EntrepreneurDashboard } from './EntrepreneurDashboard';
@@ -61,9 +62,15 @@ type ProjectDetailAction = 'donate' | 'volunteer';
 interface DashboardShellProps {
   onNavigate: (view: string, id?: string) => void;
   initialPanel?: DashboardPanel;
+  initialActiveTab?: RoleTab;
   initialProjectId?: string;
   initialProjectAction?: ProjectDetailAction | null;
   onProjectActionConsumed?: () => void;
+  onDashboardStateChange?: (state: {
+    panel: DashboardPanel;
+    activeTab: RoleTab;
+    selectedProjectId: string;
+  }) => void;
 }
 
 const PANEL_TITLES: Record<Exclude<DashboardPanel, 'desk'>, string> = {
@@ -108,9 +115,11 @@ function pmSegmentBadgeClass(segment: PmSegment) {
 export function DashboardShell({
   onNavigate,
   initialPanel,
+  initialActiveTab,
   initialProjectId,
   initialProjectAction,
   onProjectActionConsumed,
+  onDashboardStateChange,
 }: DashboardShellProps) {
   const { user, logout, loading, users: allUsers } = useAuth();
   const { unreadCount } = useNotificationsStore(user?.id);
@@ -121,16 +130,17 @@ export function DashboardShell({
   const { logs: auditLogs } = useAuditLogsStore(isAdmin);
   const { listByPm } = useAssignmentsStore();
   const { addToast } = useToast();
+  const loadingOverlay = useLoadingOverlay();
 
-  const [activeTab, setActiveTab] = useState<RoleTab>(() =>
-    user?.roles.length ? getDefaultDesk(user.roles) : 'donor'
-  );
+  const [activeTab, setActiveTab] = useState<RoleTab>(() => {
+    if (initialActiveTab) return initialActiveTab;
+    return user?.roles.length ? getDefaultDesk(user.roles) : 'donor';
+  });
   const [panel, setPanel] = useState<DashboardPanel>(initialPanel || 'desk');
   const [selectedProjectId, setSelectedProjectId] = useState(initialProjectId || '');
   const panelKey = panel === 'desk' ? `desk-${activeTab}` : `${panel}-${selectedProjectId || ''}`;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [loggingOut, setLoggingOut] = useState(false);
   const [adminSegment, setAdminSegment] = useState<AdminSegment>('id_queue');
   const [pmSegment, setPmSegment] = useState<PmSegment>('all');
 
@@ -192,6 +202,16 @@ export function DashboardShell({
     if (initialProjectId) setSelectedProjectId(initialProjectId);
   }, [initialPanel, initialProjectId, user?.id]);
 
+  useEffect(() => {
+    if (initialActiveTab && user?.roles.length && userCanAccessDesk(user.roles, initialActiveTab)) {
+      setActiveTab(initialActiveTab);
+    }
+  }, [initialActiveTab, user?.id, user?.roles]);
+
+  useEffect(() => {
+    onDashboardStateChange?.({ panel, activeTab, selectedProjectId });
+  }, [panel, activeTab, selectedProjectId, onDashboardStateChange]);
+
   const goToDesk = useCallback((tab?: RoleTab) => {
     if (tab && user && !userCanAccessDesk(user.roles, tab)) {
       addToast({
@@ -208,14 +228,14 @@ export function DashboardShell({
 
   const handleConfirmLogout = useCallback(async () => {
     setShowLogoutConfirm(false);
-    setLoggingOut(true);
+    loadingOverlay?.showLoading('Signing out');
     try {
       await logout();
       onNavigate('home');
     } finally {
-      setLoggingOut(false);
+      loadingOverlay?.hideLoading();
     }
-  }, [logout, onNavigate]);
+  }, [logout, onNavigate, loadingOverlay]);
 
   const navigateToPanel = useCallback(
     (target: DashboardPanel) => {
@@ -400,7 +420,6 @@ export function DashboardShell({
 
   return (
     <div className="dashboard-compact h-full min-h-0 w-full bg-[#FAF9F6] flex flex-col md:flex-row select-none overflow-hidden relative">
-      {loggingOut && <PulseBeatLoader message="Signing out" />}
 
       <ConfirmDialog
         open={showLogoutConfirm}

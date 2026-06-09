@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { gsap } from 'gsap';
 import { springSnappy } from '../lib/motion';
+import { useLoadingOverlay } from '../context/LoadingOverlayContext';
 import { ButtonLoader } from './ButtonLoader';
 import './PillButton.css';
 
@@ -78,6 +79,9 @@ export interface PillButtonProps {
   hoveredTextColor?: string;
   Icon?: React.ComponentType<{ className?: string }>;
   loading?: boolean;
+  /** Full-screen blur + pulse logo while loading (default true). */
+  overlay?: boolean;
+  loadingMessage?: string;
   disabled?: boolean;
   /** When false, keeps natural casing (better for dense dashboard UIs). */
   caps?: boolean;
@@ -97,9 +101,20 @@ export const PillButton: React.FC<PillButtonProps> = ({
   hoveredTextColor,
   Icon,
   loading = false,
+  overlay = true,
+  loadingMessage = 'Processing...',
   disabled = false,
   caps = true,
 }) => {
+  const loadingOverlay = useLoadingOverlay();
+
+  useEffect(() => {
+    if (!loading || overlay === false || !loadingOverlay) return;
+    loadingOverlay.showLoading(loadingMessage);
+    return () => loadingOverlay.hideLoading();
+  }, [loading, overlay, loadingMessage, loadingOverlay]);
+
+  const showInlineLoader = loading && (!overlay || !loadingOverlay);
   const variantStyle = variant ? VARIANT_STYLES[variant] : null;
   const resolvedBase = baseColor ?? variantStyle?.baseColor ?? 'transparent';
   const resolvedPill = pillColor ?? variantStyle?.pillColor ?? '#000000';
@@ -187,7 +202,7 @@ export const PillButton: React.FC<PillButtonProps> = ({
 
   const labelContent = (
     <span className="flex items-center justify-center gap-2">
-      {loading ? (
+      {showInlineLoader ? (
         <ButtonLoader className="h-3.5 w-3.5" />
       ) : (
         Icon && <Icon className="h-4 w-4 shrink-0" />

@@ -10,7 +10,6 @@ import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { useToast } from '../../context/ToastContext';
 import { Project } from '../../types';
-import { Sparkline } from '../../components/ui/Sparkline';
 import { 
   ShieldCheck, 
   UserCheck, 
@@ -83,10 +82,11 @@ export function AdminDashboard({
   const { users, verifyUser, allPms, setUserRoles, refreshUsers } = useAuth();
   const { toast } = useToast();
   const { projects, updateCampaign, deleteCampaign } = useProjectsStore();
-  const { assignProject, getForProject } = useAssignmentsStore();
+  const { assignProject, unassignProject, getForProject } = useAssignmentsStore();
   const { logs: auditLogs, loading: auditLogsLoading, refresh: refreshAuditLogs } = useAuditLogsStore(true);
 
   const [assigningProjectId, setAssigningProjectId] = useState<string | null>(null);
+  const [resettingPmProjectId, setResettingPmProjectId] = useState<string | null>(null);
   const [selectedPmMap, setSelectedPmMap] = useState<Record<string, string>>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [internalSegment, setInternalSegment] = useState<AdminSegment>('id_queue');
@@ -94,6 +94,7 @@ export function AdminDashboard({
   const [campaignToDelete, setCampaignToDelete] = useState<Project | null>(null);
   const [deletingCampaign, setDeletingCampaign] = useState(false);
   const [verifyingUserId, setVerifyingUserId] = useState<string | null>(null);
+  const [approvingCampaignId, setApprovingCampaignId] = useState<string | null>(null);
 
   const activeSegment = controlledSegment ?? internalSegment;
   const setActiveSegment = (segment: AdminSegment) => {
@@ -128,13 +129,24 @@ export function AdminDashboard({
     setVerifyingUserId(userId);
     try {
       await verifyUser(userId, action);
+      toast.success(action === 'approve' ? 'Identity profile verified.' : 'Identity profile rejected.');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update verification status.');
     } finally {
       setVerifyingUserId(null);
     }
   };
 
   const handleApproveCampaign = async (projectId: string) => {
-    await updateCampaign(projectId, { status: 'active' });
+    setApprovingCampaignId(projectId);
+    try {
+      await updateCampaign(projectId, { status: 'active' });
+      toast.success('Campaign authorized and released live.');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to approve campaign.');
+    } finally {
+      setApprovingCampaignId(null);
+    }
   };
 
   const handleDeleteCampaign = async () => {
@@ -157,6 +169,25 @@ export function AdminDashboard({
     if (pm) {
       await assignProject(projectId, pm.id, pm.name);
       setAssigningProjectId(null);
+      await refreshAuditLogs();
+      toast.success(`${pm.name} appointed as PM for this campaign.`);
+    }
+  };
+
+  const handleResetPm = async (projectId: string) => {
+    const assignment = getForProject(projectId);
+    if (!assignment || resettingPmProjectId) return;
+
+    setResettingPmProjectId(projectId);
+    try {
+      await unassignProject(projectId);
+      setSelectedPmMap((prev) => ({ ...prev, [projectId]: '' }));
+      await refreshAuditLogs();
+      toast.success(`Removed ${assignment.pmName} from this campaign.`);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to reset PM assignment.');
+    } finally {
+      setResettingPmProjectId(null);
     }
   };
 
@@ -209,10 +240,8 @@ export function AdminDashboard({
       
       {/* 1. TOP METRICS BLOCK */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        
-        {/* Card 1 */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 flex items-center justify-between shadow-xs">
-          <div className="space-y-1">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+          <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-slate-400 font-medium">
               <span>Gov-ID Reviews</span>
               {verificationQueue.length > 0 && (
@@ -222,14 +251,10 @@ export function AdminDashboard({
             <p className="font-serif font-black text-2xl text-slate-900">{verificationQueue.length} Pending</p>
             <p className="text-[10px] text-slate-400 font-mono">Platform Identity Queue</p>
           </div>
-          <div className="shrink-0 font-bold font-mono text-[#B24724]">
-            <Sparkline data={[10, 8, 5, 12, 14, 11, 7, verificationQueue.length]} width={75} height={28} color="#B24724" />
-          </div>
         </div>
 
-        {/* Card 2 */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 flex items-center justify-between shadow-xs">
-          <div className="space-y-1">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+          <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-slate-400 font-medium">
               <span>Campaign Approvals</span>
               {pendingCampaigns.length > 0 && (
@@ -241,19 +266,10 @@ export function AdminDashboard({
               {pendingCampaigns.length} awaiting approval · {activeCampaigns.length} live
             </p>
           </div>
-          <div className="shrink-0">
-            <Sparkline
-              data={[2, 4, 3, 5, 2, 6, 7, totalManagedCampaigns]}
-              width={75}
-              height={28}
-              color="#B24724"
-            />
-          </div>
         </div>
 
-        {/* Card 3 */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 flex items-center justify-between shadow-xs">
-          <div className="space-y-1">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+          <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-slate-400 font-medium">
               <span>Platform Escrow Pot</span>
               <span className="text-[10px] text-emerald-600 bg-emerald-50 px-1 py-0.2 rounded-md font-bold font-mono">100% Safe</span>
@@ -261,14 +277,10 @@ export function AdminDashboard({
             <p className="font-serif font-black text-2xl text-emerald-800">$142,500</p>
             <p className="text-[10px] text-slate-400 font-mono">Aggregated escrow balances</p>
           </div>
-          <div className="shrink-0">
-            <Sparkline data={[110, 115, 120, 128, 131, 135, 139, 142]} width={75} height={28} color="#10B981" />
-          </div>
         </div>
 
-        {/* Card 4 */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 flex items-center justify-between shadow-xs">
-          <div className="space-y-1">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+          <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-slate-400 font-medium">
               <span>Compliance Ratio</span>
               <span className="text-[10px] text-teal-600 bg-teal-50 px-1 py-0.2 rounded-md font-bold font-mono">Optimal</span>
@@ -276,11 +288,7 @@ export function AdminDashboard({
             <p className="font-serif font-black text-2xl text-teal-800">99.7%</p>
             <p className="text-[10px] text-slate-400 font-mono">Verified public chain hashes</p>
           </div>
-          <div className="shrink-0">
-            <Sparkline data={[98, 98, 99, 99, 99, 99, 99, 100]} width={75} height={28} color="#0EA5E9" />
-          </div>
         </div>
-
       </div>
 
       <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
@@ -506,13 +514,13 @@ export function AdminDashboard({
                         {currentAssignment ? (
                           <div className="flex justify-between items-center text-xs text-slate-700 bg-slate-50 border p-1 px-2 rounded-lg">
                             <span>Appointed: <span className="font-bold text-slate-800">{currentAssignment.pmName}</span></span>
-                            <button 
-                              onClick={() => {
-                                updateCampaign(camp.id, { status: 'active' }); // Toggle to allow reselect or bypass
-                              }}
-                              className="text-[9px] text-[#B24724] font-mono underline"
+                            <button
+                              type="button"
+                              onClick={() => handleResetPm(camp.id)}
+                              disabled={resettingPmProjectId === camp.id}
+                              className="text-[9px] text-[#B24724] font-mono underline hover:text-[#9A3412] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0 ml-2"
                             >
-                              Reset
+                              {resettingPmProjectId === camp.id ? 'Resetting…' : 'Reset'}
                             </button>
                           </div>
                         ) : (
@@ -547,7 +555,9 @@ export function AdminDashboard({
                             variant="success"
                             caps={false}
                             onClick={() => handleApproveCampaign(camp.id)}
-                            disabled={!currentAssignment}
+                            loading={approvingCampaignId === camp.id}
+                            loadingMessage="Authorizing campaign..."
+                            disabled={!currentAssignment || (!!approvingCampaignId && approvingCampaignId !== camp.id)}
                             className="w-full py-1.5 text-[9px] font-mono"
                           >
                             {!currentAssignment ? 'Auditor Required first' : 'Authorize Campaign Release'}

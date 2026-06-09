@@ -5,7 +5,6 @@ import { useAuth } from '../../context/AuthContext';
 import { useAssignmentsStore } from '../../hooks/useAssignmentsStore';
 import { useProjectsStore } from '../../hooks/useProjectsStore';
 import { StatusBadge } from '../../components/ui/StatusBadge';
-import { Sparkline } from '../../components/ui/Sparkline';
 import { PillButton } from '../../components/PillButton';
 import { 
   ClipboardCheck, 
@@ -135,10 +134,8 @@ export function ProjectManagerDashboard({
 
       {/* 1. TOP METRICS BLOCK */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        
-        {/* Card 1 */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 flex items-center justify-between shadow-xs">
-          <div className="space-y-1">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+          <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-slate-400 font-medium">
               <span>Appointed Monitored</span>
               <span className="text-[10px] text-[#B24724] bg-orange-50 px-1 py-0.2 rounded-md font-bold font-mono">Assigned</span>
@@ -146,14 +143,10 @@ export function ProjectManagerDashboard({
             <p className="font-serif font-black text-2xl text-slate-900">{pmProjects.length} Campaigns</p>
             <p className="text-[10px] text-slate-400 font-mono">Official Regulatory Appoints</p>
           </div>
-          <div className="shrink-0">
-            <Sparkline data={[1, 1, 2, 2, 3, 3, pmProjects.length || 4, pmProjects.length || 4]} width={75} height={28} color="#B24724" />
-          </div>
         </div>
 
-        {/* Card 2 */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 flex items-center justify-between shadow-xs">
-          <div className="space-y-1">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+          <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-slate-400 font-medium">
               <span>Auditing Queue</span>
               <span className="text-[10px] text-amber-600 bg-amber-50 px-1 py-0.2 rounded-md font-bold font-mono animate-pulse">Active</span>
@@ -161,14 +154,10 @@ export function ProjectManagerDashboard({
             <p className="font-serif font-black text-2xl text-slate-900">{auditQueue.length} Pending</p>
             <p className="text-[10px] text-slate-400 font-mono">Audit Evidence Submissions</p>
           </div>
-          <div className="shrink-0">
-            <Sparkline data={[0, 1, 1, 0, 2, 0, auditQueue.length, auditQueue.length]} width={75} height={28} color="#B24724" />
-          </div>
         </div>
 
-        {/* Card 3 */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 flex items-center justify-between shadow-xs">
-          <div className="space-y-1">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+          <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-slate-400 font-medium">
               <span>Disbursed Verified</span>
               <span className="text-[10px] text-emerald-600 bg-emerald-50 px-1 py-0.2 rounded-md font-bold font-mono">100% Safe</span>
@@ -178,14 +167,10 @@ export function ProjectManagerDashboard({
             </p>
             <p className="text-[10px] text-slate-400 font-mono">Released escrow values</p>
           </div>
-          <div className="shrink-0">
-            <Sparkline data={[5000, 10000, 12000, 18000, 22000, 25000, 28000, 32000]} width={75} height={28} color="#10B981" />
-          </div>
         </div>
 
-        {/* Card 4 */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 flex items-center justify-between shadow-xs">
-          <div className="space-y-1">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+          <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-slate-400 font-medium">
               <span>Auditor Rating</span>
               <span className="text-[10px] text-indigo-600 bg-indigo-50 px-1 py-0.2 rounded-md font-bold font-mono">Level III</span>
@@ -193,11 +178,7 @@ export function ProjectManagerDashboard({
             <p className="font-serif font-black text-2xl text-indigo-700">9.8 / 10</p>
             <p className="text-[10px] text-slate-400 font-mono">Public registry feedback rank</p>
           </div>
-          <div className="shrink-0">
-            <Sparkline data={[95, 96, 96, 97, 98, 98, 98, 99]} width={75} height={28} color="#4F46E5" />
-          </div>
         </div>
-
       </div>
 
       <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">

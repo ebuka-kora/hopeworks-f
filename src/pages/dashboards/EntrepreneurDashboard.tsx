@@ -14,6 +14,7 @@ import {
   formatProjectCode,
 } from '../../components/dashboard/DashboardUI';
 import { PillButton } from '../../components/PillButton';
+import { useToast } from '../../context/ToastContext';
 import {
   Award,
   ArrowUpRight,
@@ -28,9 +29,10 @@ interface DashboardProps {
 
 export function EntrepreneurDashboard({ onNavigate }: DashboardProps) {
   const { user } = useAuth();
+  const { toast } = useToast();
   const { projects, refresh: refreshProjects } = useProjectsStore();
   const { listByProject, updateApplicationStatus } = useApplicationsStore();
-  const [reviewLoading, setReviewLoading] = useState<string | null>(null);
+  const [reviewLoading, setReviewLoading] = useState<{ appId: string; action: 'approved' | 'rejected' } | null>(null);
 
   const myCampaigns = projects.filter(p => p.ownerId === user?.id);
 
@@ -42,11 +44,13 @@ export function EntrepreneurDashboard({ onNavigate }: DashboardProps) {
 
   const handleReviewApplication = async (appId: string, status: 'approved' | 'rejected') => {
     try {
-      setReviewLoading(appId);
+      setReviewLoading({ appId, action: status });
       await updateApplicationStatus(appId, status);
       await refreshProjects();
+      toast.success(status === 'approved' ? 'Volunteer application approved.' : 'Volunteer application declined.');
     } catch (e) {
-      console.error('Failed to review application:', e);
+      const message = e instanceof Error ? e.message : 'Failed to review application.';
+      toast.error(message);
     } finally {
       setReviewLoading(null);
     }
@@ -307,18 +311,20 @@ export function EntrepreneurDashboard({ onNavigate }: DashboardProps) {
                     variant="brand"
                     caps={false}
                     onClick={() => handleReviewApplication(app.id, 'approved')}
-                    loading={reviewLoading === app.id}
-                    disabled={!!reviewLoading && reviewLoading !== app.id}
+                    loading={reviewLoading?.appId === app.id && reviewLoading.action === 'approved'}
+                    loadingMessage="Approving volunteer..."
+                    disabled={!!reviewLoading && reviewLoading.appId !== app.id}
                     className="flex-1 py-2 text-xs"
                   >
-                    Approve {reviewLoading !== app.id && <CheckCircle className="h-3 w-3" />}
+                    Approve {!(reviewLoading?.appId === app.id) && <CheckCircle className="h-3 w-3" />}
                   </PillButton>
                   <PillButton
                     variant="muted"
                     caps={false}
                     onClick={() => handleReviewApplication(app.id, 'rejected')}
-                    loading={reviewLoading === app.id}
-                    disabled={!!reviewLoading && reviewLoading !== app.id}
+                    loading={reviewLoading?.appId === app.id && reviewLoading.action === 'rejected'}
+                    loadingMessage="Declining application..."
+                    disabled={!!reviewLoading && reviewLoading.appId !== app.id}
                     className="flex-1 py-2 text-xs"
                   >
                     Reject

@@ -326,6 +326,7 @@ export function VolunteerDialog({ project, onClose, onSuccess }: VolunteerDialog
               variant="success"
               caps={false}
               loading={isSubmitting}
+              loadingMessage="Submitting application"
               disabled={!!isOwner || isFull || !canApply || selectedDates.length === 0}
               Icon={Send}
               className="flex-[2] py-2.5 px-4 text-xs font-mono"

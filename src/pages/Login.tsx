@@ -7,7 +7,7 @@ import { UserRole } from '../types';
 import { Logo } from '../components/Logo';
 import { PillButton } from '../components/PillButton';
 import { PasswordInput } from '../components/PasswordInput';
-import { PulseBeatLoader } from '../components/PulseBeatLoader';
+import { useLoadingOverlay } from '../context/LoadingOverlayContext';
 // @ts-ignore
 import boyHospitalSmile from '../assets/images/boy_hospital_smile_1780656337127.png';
 // @ts-ignore
@@ -21,7 +21,8 @@ import {   ShieldCheck,
   Sparkles, 
   AlertCircle, 
   Check, 
-  ChevronLeft, 
+  ChevronLeft,
+  Home,
   Globe, 
   HelpCircle,
   PiggyBank,
@@ -53,6 +54,7 @@ export function Login({
   redirectAfterAuth,
 }: LoginProps) {
   const { login, signUp, loginSimulatedUser } = useAuth();
+  const loadingOverlay = useLoadingOverlay();
   
   // Choose wizard initial view
   const [wizardStep, setWizardStep] = useState<WizardStep>(mode === 'register' ? 'signup_step4' : 'welcome');
@@ -72,16 +74,19 @@ export function Login({
   // Onboarding specific attributes (GoFundMe style)
   const [country, setCountry] = useState("");
   const [zipCode, setZipCode] = useState("");
-  const [category, setCategory] = useState("");
+  const [fundraisingCategories, setFundraisingCategories] = useState<string[]>([]);
   // Status indicators
   const [validationError, setValidationError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Sync state if category mode changes externally
+  const isProjectOwnerSignup = roles.includes('entrepreneur');
+  const signupStepCount = isProjectOwnerSignup ? 3 : 2;
+
+  // Sync state if register mode / preselected roles change externally
   useEffect(() => {
     if (mode === 'register') {
       goToWizardStep('signup_step4', 'forward');
-      setRoles(preselectedRoles?.length ? preselectedRoles : []);
+      setRoles(preselectedRoles?.length ? [preselectedRoles[0]] : []);
     } else {
       goToWizardStep('welcome', 'backward');
       setRoles([]);
@@ -100,14 +105,14 @@ export function Login({
   // Helper check for sandbox user logs
   const handleSimulatedClick = async (simId: string) => {
     setValidationError("");
-    setLoading(true);
+    loadingOverlay?.showLoading('Signing in');
     try {
       await loginSimulatedUser(simId);
       onNavigate('dashboard');
     } catch (err: unknown) {
       setValidationError(err instanceof Error ? err.message : 'Demo login failed.');
     } finally {
-      setLoading(false);
+      loadingOverlay?.hideLoading();
     }
   };
 
@@ -163,7 +168,13 @@ export function Login({
 
     setLoading(true);
     try {
-      await signUp(email, name, roles, password);
+      const profileExtras = isProjectOwnerSignup
+        ? {
+            location: `${zipCode.trim()}, ${country}`,
+            fundraisingCategories,
+          }
+        : undefined;
+      await signUp(email, name, roles, password, profileExtras);
       onNavigate(redirectAfterAuth || 'dashboard');
     } catch (err: any) {
       setValidationError(err.message || "An error occurred during verification.");
@@ -174,15 +185,28 @@ export function Login({
 
   const toggleRole = (role: UserRole) => {
     if (roles.includes(role)) {
-      setRoles(roles.filter(r => r !== role));
-    } else {
-      if (roles.length >= 2) {
-        setValidationError("HopeWorks Rules: Maximum of 2 community roles permitted.");
-        return;
+      setRoles([]);
+      if (role === 'entrepreneur') {
+        setCountry('');
+        setZipCode('');
+        setFundraisingCategories([]);
       }
-      setRoles([...roles, role]);
+    } else {
+      setRoles([role]);
+      if (role !== 'entrepreneur') {
+        setCountry('');
+        setZipCode('');
+        setFundraisingCategories([]);
+      }
       setValidationError("");
     }
+  };
+
+  const toggleFundraisingCategory = (cat: string) => {
+    setFundraisingCategories((prev) =>
+      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+    );
+    setValidationError("");
   };
 
   const handleStep1Continue = () => {
@@ -194,8 +218,8 @@ export function Login({
       setValidationError("Please specify your zip code to continue.");
       return;
     }
-    if (!category) {
-      setValidationError("Please select why you are fundraising to continue.");
+    if (fundraisingCategories.length === 0) {
+      setValidationError("Please select at least one reason you are fundraising to continue.");
       return;
     }
     setValidationError("");
@@ -208,14 +232,20 @@ export function Login({
       return;
     }
     setValidationError("");
-    goToWizardStep('signup_step1', 'forward');
+    goToWizardStep(isProjectOwnerSignup ? 'signup_step1' : 'signup_step5', 'forward');
   };
 
-  // Calculates percentage for progress indicator (3-step signup: roles → location → credentials)
   const getProgressPercent = () => {
+    if (isProjectOwnerSignup) {
+      switch (wizardStep) {
+        case 'signup_step4': return 33;
+        case 'signup_step1': return 66;
+        case 'signup_step5': return 100;
+        default: return 0;
+      }
+    }
     switch (wizardStep) {
-      case 'signup_step4': return 33;
-      case 'signup_step1': return 66;
+      case 'signup_step4': return 50;
       case 'signup_step5': return 100;
       default: return 0;
     }
@@ -223,7 +253,6 @@ export function Login({
 
   return (
     <div className="min-h-[calc(100vh-4.5rem)] bg-[#F8F9FA] grid grid-cols-1 lg:grid-cols-12 select-none font-sans">
-      {loading && <PulseBeatLoader message={wizardStep === 'signup_step5' ? 'Creating account' : 'Signing in'} />}
 
       {/* LEFT COLUMN: THE GORGEOUS GOFUNDME-INSPIRED DYNAMIC WIZARD (Centered & compact for zoomed out feel) */}
       <div className="lg:col-span-6 flex flex-col justify-between p-6 sm:p-10 md:p-12 bg-white shrink-0 relative">
@@ -239,10 +268,10 @@ export function Login({
         )}
 
         {/* TOP SHELF META - Title & Switcher bar */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 gap-3">
           <div 
             onClick={() => onNavigate('home')}
-            className="flex items-center gap-2.5 cursor-pointer group hover:opacity-90 transition-opacity"
+            className="flex items-center gap-2.5 cursor-pointer group hover:opacity-90 transition-opacity min-w-0"
             title="Return to Home"
           >
             <Logo iconSize={30} showText={true} />
@@ -251,23 +280,39 @@ export function Login({
             </span>
           </div>
 
-          {/* Go back to Welcome if not there */}
-          {wizardStep !== 'welcome' && wizardStep !== 'signup_step4' && (
+          <div className="flex items-center gap-2 shrink-0">
+            {wizardStep !== 'welcome' && wizardStep !== 'signup_step4' && (
+              <PillButton
+                variant="muted"
+                caps={false}
+                onClick={() => {
+                  setValidationError("");
+                  if (wizardStep === 'password') goToWizardStep('welcome', 'backward');
+                  else if (wizardStep === 'signup_step1') goToWizardStep('signup_step4', 'backward');
+                  else if (wizardStep === 'signup_step5') {
+                    goToWizardStep(isProjectOwnerSignup ? 'signup_step1' : 'signup_step4', 'backward');
+                  }
+                }}
+                className="py-1.5 px-3 text-[11px]"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+                Back
+              </PillButton>
+            )}
             <PillButton
               variant="muted"
               caps={false}
               onClick={() => {
                 setValidationError("");
-                if (wizardStep === 'password') goToWizardStep('welcome', 'backward');
-                else if (wizardStep === 'signup_step1') goToWizardStep('signup_step4', 'backward');
-                else if (wizardStep === 'signup_step5') goToWizardStep('signup_step1', 'backward');
+                onNavigate('home');
               }}
               className="py-1.5 px-3 text-[11px]"
+              title="Back to landing page"
             >
-              <ChevronLeft className="h-3.5 w-3.5" />
-              Back
+              <Home className="h-3.5 w-3.5" />
+              Home
             </PillButton>
-          )}
+          </div>
         </div>
 
         {/* ERROR BOX TRAY */}
@@ -409,7 +454,7 @@ export function Login({
               <form onSubmit={handlePasswordSubmit} className="space-y-5">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-wider block">
-                    Node Authorization Password
+                    Password
                   </label>
                   <PasswordInput
                     required
@@ -433,6 +478,7 @@ export function Login({
                 <PillButton
                   type="submit"
                   loading={loading}
+                  loadingMessage="Signing in"
                   className="w-full py-3.5 cursor-pointer shadow-sm hover:shadow-md border-slate-200"
                   baseColor="transparent"
                   textColor="#334155"
@@ -468,7 +514,7 @@ export function Login({
             <div className="space-y-6 block">
               <div className="space-y-1">
                 <span className="text-[10px] font-mono text-emerald-700 uppercase font-black tracking-widest block">
-                  Step 2 of 3
+                  Step 2 of {signupStepCount}
                 </span>
                 <h3 className="text-2xl font-serif font-black text-slate-950 tracking-tight">
                   Let's begin your fundraising journey
@@ -518,16 +564,19 @@ export function Login({
                   <label className="text-[10px] font-sans text-slate-500 font-bold uppercase tracking-wider block">
                     What best describes why you're fundraising?
                   </label>
+                  <p className="text-[10px] text-slate-400 font-sans">
+                    Select all that apply ({fundraisingCategories.length} selected)
+                  </p>
                   
                   {/* CATEGORIES GRID PILLS */}
-                  <div className="flex flex-wrap gap-2 pt-1 max-h-[160px] overflow-y-auto p-1.5 bg-slate-50 border border-slate-100 rounded-xl">
+                  <div className="flex flex-wrap gap-2 pt-1 max-h-[200px] overflow-y-auto p-1.5 bg-slate-50 border border-slate-100 rounded-xl">
                     {categories.map((cat) => {
-                      const isSelected = category === cat;
+                      const isSelected = fundraisingCategories.includes(cat);
                       return (
                         <button
                           key={cat}
                           type="button"
-                          onClick={() => setCategory(cat)}
+                          onClick={() => toggleFundraisingCategory(cat)}
                           className={`px-3 py-1.5 rounded-full text-[10px] font-sans font-bold transition-all border cursor-pointer ${
                             isSelected 
                               ? 'bg-emerald-50 border-emerald-500 text-emerald-800' 
@@ -543,7 +592,7 @@ export function Login({
               </div>
 
               {/* ACTION FOOTER */}
-              <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="pt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <button
                   type="button"
                   onClick={() => {
@@ -557,7 +606,7 @@ export function Login({
                 <PillButton
                   type="button"
                   onClick={handleStep1Continue}
-                  className="w-full sm:w-auto px-6 py-2.5 cursor-pointer shadow-sm border-slate-200"
+                  className="w-full sm:w-auto px-6 py-2.5 cursor-pointer shadow-sm border-slate-200 shrink-0"
                   baseColor="transparent"
                   textColor="#334155"
                   pillColor="#B24724"
@@ -574,13 +623,13 @@ export function Login({
             <div className="space-y-5 block">
               <div className="space-y-1">
                 <span className="text-[10px] font-mono text-emerald-700 uppercase font-black tracking-widest block">
-                  Step 1 of 3
+                  Step 1 of {signupStepCount}
                 </span>
                 <h3 className="text-2xl font-serif font-black text-slate-950 tracking-tight">
                   Assign your citizen roles
                 </h3>
                 <p className="text-xs text-slate-400">
-                  Authorize your profile with up to 2 citizen roles of community engagement.
+                  Choose one citizen role for your HopeWorks profile.
                 </p>
               </div>
 
@@ -666,7 +715,7 @@ export function Login({
               </div>
 
               {/* ACTION FOOTER */}
-              <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="pt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <button
                   type="button"
                   onClick={() => {
@@ -677,20 +726,17 @@ export function Login({
                 >
                   Already have an account? <span className="font-bold text-[#B24724]">Sign In</span>
                 </button>
-                <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
-                  <span className="text-[10px] font-mono text-slate-400 uppercase font-black tracking-widest pl-1">{roles.length}/2 Active Roles</span>
-                  <PillButton
-                    type="button"
-                    onClick={handleStep4Continue}
-                    className="px-6 py-2.5 cursor-pointer shadow-sm border-slate-200"
-                    baseColor="transparent"
-                    textColor="#334155"
-                    pillColor="#B24724"
-                    hoveredTextColor="#ffffff"
-                  >
-                    Continue
-                  </PillButton>
-                </div>
+                <PillButton
+                  type="button"
+                  onClick={handleStep4Continue}
+                  className="w-full sm:w-auto px-6 py-2.5 cursor-pointer shadow-sm border-slate-200 shrink-0"
+                  baseColor="transparent"
+                  textColor="#334155"
+                  pillColor="#B24724"
+                  hoveredTextColor="#ffffff"
+                >
+                  Continue
+                </PillButton>
               </div>
             </div>
           )}
@@ -700,10 +746,10 @@ export function Login({
             <div className="space-y-6 block">
               <div className="space-y-1">
                 <span className="text-[10px] font-mono text-emerald-700 uppercase font-black tracking-widest block">
-                  Step 3 of 3
+                  Step {signupStepCount} of {signupStepCount}
                 </span>
                 <h3 className="text-2xl font-serif font-black text-slate-950 tracking-tight">
-                  Finalize your credential node
+                  Finalize your account
                 </h3>
                 <p className="text-xs text-slate-400">
                   Complete your safe, auditable profile to join HopeWorks.
@@ -756,13 +802,14 @@ export function Login({
                 <PillButton
                   type="submit"
                   loading={loading}
+                  loadingMessage="Creating account"
                   className="w-full mt-4 py-3.5 cursor-pointer shadow-sm hover:shadow-md border-slate-200"
                   baseColor="transparent"
                   textColor="#334155"
                   pillColor="#B24724"
                   hoveredTextColor="#ffffff"
                 >
-                  {loading ? 'Securing Identity Node...' : 'Complete Registration & Launch'}
+                  {loading ? 'Creating your account...' : 'Complete Registration & Launch'}
                 </PillButton>
               </form>
 
@@ -784,8 +831,8 @@ export function Login({
         </WizardStepMotion>
 
         {/* BOTTOM QUICK SANDBOX ROLE SWITCHER (Fidelity Bypass Footer - Rendered perpetually for exact size/height symmetry) */}
-        <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 mt-8">
-          <div className="space-y-0.5">
+        <div className="pt-6 border-t border-slate-100 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between mt-8">
+          <div className="space-y-0.5 shrink-0">
             <span className="text-[9.5px] font-sans font-bold uppercase tracking-wider text-slate-700 block select-none">
               {wizardStep === 'welcome' ? 'Sandbox Role Switcher' : 'Secure Sandbox Gateway'}
             </span>
@@ -796,7 +843,7 @@ export function Login({
             </span>
           </div>
           
-          <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-end">
+          <div className="grid grid-cols-2 gap-2 w-full lg:flex lg:flex-wrap lg:w-auto lg:justify-end">
             {([
               { key: 'user-donor', label: 'Donor' },
               { key: 'user-volunteer', label: 'Volunteer' },
@@ -808,7 +855,11 @@ export function Login({
                 key={key}
                 type="button"
                 onClick={() => handleSimulatedClick(key)}
-                className="py-1 px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-[9px] font-mono font-bold border border-slate-200/60 text-center cursor-pointer select-none transition-all shrink-0"
+                className={`py-2.5 lg:py-1 px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-[9px] font-mono font-bold border border-slate-200/60 text-center cursor-pointer select-none transition-all w-full lg:w-auto ${
+                  key === 'user-admin'
+                    ? 'col-span-2 w-1/2 justify-self-center lg:col-span-1 lg:w-auto lg:justify-self-auto'
+                    : ''
+                }`}
               >
                 {label}
               </button>
@@ -847,7 +898,7 @@ export function Login({
             "We fund transparent campaigns matched to UN development milestones, backed by verified third-party PM auditors."
           </h4>
           <span className="block text-[9px] text-[#FAF9F6]/60 font-mono uppercase font-semibold">
-            HopeWorks Foundation Node Protocol
+            HopeWorks Foundation Trust Protocol
           </span>
         </div>
 
