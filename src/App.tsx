@@ -251,12 +251,18 @@ function AppContent() {
   };
 
   const isDashboardView = view === 'dashboard' || view === 'all_dashboards';
+  const isAuthView =
+    view === 'login' ||
+    view === 'register' ||
+    view === 'forgot_password' ||
+    view === 'reset_password';
+  const isFullHeightView = isDashboardView || isAuthView;
   const reducedMotion = useReducedMotion();
   const pageVariants = resolveVariants(pageTransition, reducedMotion);
 
   return (
     <div className={`bg-slate-50 flex flex-col selection:bg-emerald-500 selection:text-white ${
-      isDashboardView
+      isFullHeightView
         ? 'h-dvh max-h-dvh overflow-hidden'
         : 'min-h-screen justify-between'
     }`}>
@@ -268,11 +274,11 @@ function AppContent() {
       )}
 
       {/* CORE PAGES CANVAS WITH TRANSITIONS */}
-      <main className={`flex-1 min-h-0 ${isDashboardView ? 'flex flex-col overflow-hidden' : ''}`}>
+      <main className={`flex-1 min-h-0 ${isFullHeightView ? 'flex flex-col overflow-hidden' : ''}`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={view + (selectedProjectId || '')}
-            className={isDashboardView ? 'flex flex-1 flex-col min-h-0 h-full' : 'h-full'}
+            className={isFullHeightView ? 'flex flex-1 flex-col min-h-0 h-full' : 'h-full'}
             variants={pageVariants}
             initial="initial"
             animate="animate"
@@ -347,7 +353,7 @@ function AppContent() {
       </main>
 
       {/* FOOTER */}
-      {view !== 'dashboard' && view !== 'all_dashboards' && (
+      {!isFullHeightView && (
         <Footer onNavigate={handleNavigate} />
       )}
 

@@ -40,7 +40,7 @@ export function ForgotPassword({ onNavigate }: ForgotPasswordProps) {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4.5rem)] bg-[#F8F9FA] flex items-center justify-center p-6 select-none font-sans relative">
+    <div className="h-full min-h-0 flex-1 bg-[#F8F9FA] flex items-center justify-center p-6 select-none font-sans relative">
       <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-8 sm:p-10 space-y-8 shadow-xs">
         {/* LOGO TITLE ROW */}
         <div className="flex flex-col items-center text-center space-y-4">

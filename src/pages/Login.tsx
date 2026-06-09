@@ -55,7 +55,6 @@ export function Login({
 }: LoginProps) {
   const { login, signUp, loginSimulatedUser } = useAuth();
   const loadingOverlay = useLoadingOverlay();
-  
   // Choose wizard initial view
   const [wizardStep, setWizardStep] = useState<WizardStep>(mode === 'register' ? 'signup_step4' : 'welcome');
   const [wizardDirection, setWizardDirection] = useState<'forward' | 'backward'>('forward');
@@ -81,6 +80,7 @@ export function Login({
 
   const isProjectOwnerSignup = roles.includes('entrepreneur');
   const signupStepCount = isProjectOwnerSignup ? 3 : 2;
+  const isLoginFlow = wizardStep === 'welcome' || wizardStep === 'password';
 
   // Sync state if register mode / preselected roles change externally
   useEffect(() => {
@@ -102,7 +102,6 @@ export function Login({
     'Volunteer', 'Wishes'
   ];
 
-  // Helper check for sandbox user logs
   const handleSimulatedClick = async (simId: string) => {
     setValidationError("");
     loadingOverlay?.showLoading('Signing in');
@@ -252,10 +251,10 @@ export function Login({
   };
 
   return (
-    <div className="min-h-[calc(100vh-4.5rem)] bg-[#F8F9FA] grid grid-cols-1 lg:grid-cols-12 select-none font-sans">
+    <div className="h-full min-h-0 flex-1 bg-[#F8F9FA] grid grid-cols-1 lg:grid-cols-12 select-none font-sans">
 
       {/* LEFT COLUMN: THE GORGEOUS GOFUNDME-INSPIRED DYNAMIC WIZARD (Centered & compact for zoomed out feel) */}
-      <div className="lg:col-span-6 flex flex-col justify-between p-6 sm:p-10 md:p-12 bg-white shrink-0 relative">
+      <div className={`lg:col-span-6 flex flex-col h-full min-h-0 p-6 sm:p-10 md:p-12 bg-white relative overflow-y-auto ${isLoginFlow ? 'justify-between' : ''}`}>
         
         {/* PROGRESS INDICATOR BAR AT TIMELINE */}
         {wizardStep.startsWith('signup_step') && (
@@ -830,47 +829,48 @@ export function Login({
 
         </WizardStepMotion>
 
-        {/* BOTTOM QUICK SANDBOX ROLE SWITCHER (Fidelity Bypass Footer - Rendered perpetually for exact size/height symmetry) */}
-        <div className="pt-6 border-t border-slate-100 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between mt-8">
-          <div className="space-y-0.5 shrink-0">
-            <span className="text-[9.5px] font-sans font-bold uppercase tracking-wider text-slate-700 block select-none">
-              {wizardStep === 'welcome' ? 'Sandbox Role Switcher' : 'Secure Sandbox Gateway'}
-            </span>
-            <span className="text-[9px] text-slate-400 block leading-tight select-none">
-              {wizardStep === 'welcome' 
-                ? 'Instantly jump into simulated active profiles here:' 
-                : 'Bypass or transition into simulation profiles:'}
-            </span>
+        {isLoginFlow && (
+          <div className="pt-6 border-t border-slate-100 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between mt-8 shrink-0">
+            <div className="space-y-0.5 shrink-0">
+              <span className="text-[9.5px] font-sans font-bold uppercase tracking-wider text-slate-700 block select-none">
+                {wizardStep === 'welcome' ? 'Sandbox Role Switcher' : 'Secure Sandbox Gateway'}
+              </span>
+              <span className="text-[9px] text-slate-400 block leading-tight select-none">
+                {wizardStep === 'welcome'
+                  ? 'Instantly jump into simulated active profiles here:'
+                  : 'Bypass or transition into simulation profiles:'}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 w-full lg:flex lg:flex-wrap lg:w-auto lg:justify-end">
+              {([
+                { key: 'user-donor', label: 'Donor' },
+                { key: 'user-volunteer', label: 'Volunteer' },
+                { key: 'user-owner', label: 'Owner' },
+                { key: 'user-pm', label: 'PM' },
+                { key: 'user-admin', label: 'Admin' },
+              ] as const).map(({ key, label }) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => handleSimulatedClick(key)}
+                  className={`py-2.5 lg:py-1 px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-[9px] font-mono font-bold border border-slate-200/60 text-center cursor-pointer select-none transition-all w-full lg:w-auto ${
+                    key === 'user-admin'
+                      ? 'col-span-2 w-1/2 justify-self-center lg:col-span-1 lg:w-auto lg:justify-self-auto'
+                      : ''
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
-          
-          <div className="grid grid-cols-2 gap-2 w-full lg:flex lg:flex-wrap lg:w-auto lg:justify-end">
-            {([
-              { key: 'user-donor', label: 'Donor' },
-              { key: 'user-volunteer', label: 'Volunteer' },
-              { key: 'user-owner', label: 'Owner' },
-              { key: 'user-pm', label: 'PM' },
-              { key: 'user-admin', label: 'Admin' },
-            ] as const).map(({ key, label }) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => handleSimulatedClick(key)}
-                className={`py-2.5 lg:py-1 px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-[9px] font-mono font-bold border border-slate-200/60 text-center cursor-pointer select-none transition-all w-full lg:w-auto ${
-                  key === 'user-admin'
-                    ? 'col-span-2 w-1/2 justify-self-center lg:col-span-1 lg:w-auto lg:justify-self-auto'
-                    : ''
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
+        )}
 
       </div>
 
       {/* RIGHT COLUMN: BEAUTIFUL HELPING HANDS HIGH CONTRAST COVER T TREATMENT */}
-      <div className="hidden lg:block lg:col-span-6 relative overflow-hidden select-none bg-slate-950">
+      <div className="hidden lg:block lg:col-span-6 h-full min-h-0 relative overflow-hidden select-none bg-slate-950">
         
         {/* Photo layer utilizing optimal fit */}
         <div className="absolute inset-0 z-0">
