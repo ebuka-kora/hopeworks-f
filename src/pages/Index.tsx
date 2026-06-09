@@ -1,7 +1,6 @@
 import React from 'react';
 import { gsap } from 'gsap';
-import { useAuth } from '../context/AuthContext';
-import { Logo } from '../components/Logo';
+import { SiteHeader } from '../components/SiteHeader';
 import { useProjectsStore } from '../hooks/useProjectsStore';
 import { useDonationsStore } from '../hooks/useDonationsStore';
 import { useApplicationsStore } from '../hooks/useApplicationsStore';
@@ -14,7 +13,7 @@ import { PillButton } from '../components/PillButton';
 import { BigNumbers } from '../components/landing/BigNumbers';
 import { LedgerStream } from '../components/landing/LedgerStream';
 import { TrustMark } from '../components/landing/TrustMark';
-import { Heart, Activity, Globe, Shield, CheckCircle2, UserCheck, ArrowRight, ShieldCheck, HeartHandshake, MoveLeft, MoveRight, LogOut } from 'lucide-react';
+import { Heart, Activity, Globe, Shield, CheckCircle2, UserCheck, ArrowRight, ShieldCheck, HeartHandshake, MoveLeft, MoveRight } from 'lucide-react';
 import { motion, useScroll, useTransform } from 'motion/react';
 import { Reveal } from '../components/motion/Reveal';
 import { StaggerChildren } from '../components/motion/StaggerChildren';
@@ -59,7 +58,6 @@ interface IndexProps {
 }
 
 export function Index({ onNavigate }: IndexProps) {
-  const { user, logout } = useAuth();
   const { projects } = useProjectsStore();
   const { donations } = useDonationsStore();
   const { applications } = useApplicationsStore();
@@ -169,91 +167,9 @@ export function Index({ onNavigate }: IndexProps) {
   return (
     <div className="space-y-0 pb-32">
       
-      {/* EMBEDDED HERO HEADER — fixed so it stays visible while scrolling */}
-      <header className="fixed top-0 left-0 right-0 z-50 w-full bg-[#FAF9F6]/90 backdrop-blur-md border-b border-slate-200/30 select-none">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between gap-4">
-          {/* Left Side: Brand Logo */}
-          <div 
-            onClick={() => onNavigate('home')}
-            className="cursor-pointer select-none shrink-0"
-          >
-            <Logo iconSize={32} />
-          </div>
+      <SiteHeader onNavigate={onNavigate} variant="fixed" showNotifications />
 
-          {/* Right Side: Logged-in info & Authentication Buttons */}
-          <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-[0.16em]">
-            {user ? (
-              <div className="flex items-center gap-3">
-                {/* Profile details */}
-                <div 
-                  onClick={() => onNavigate('profile')}
-                  className="flex items-center gap-2 border border-slate-200/50 bg-[#FAF9F6]/50 backdrop-blur-md py-1.5 px-3.5 rounded-full cursor-pointer hover:bg-white hover:border-slate-300 transition-all font-mono"
-                >
-                  {user.avatarUrl ? (
-                    <img
-                      src={user.avatarUrl}
-                      alt={user.name}
-                      referrerPolicy="no-referrer"
-                      className="h-5 w-5 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="h-5 w-5 rounded-full bg-slate-800 text-white font-serif text-[10px] flex items-center justify-center font-bold">
-                      {user.name.charAt(0)}
-                    </div>
-                  )}
-                  <span className="hidden sm:inline-block text-[10px] text-slate-600 font-sans tracking-normal lowercase font-semibold">{user.name}</span>
-                </div>
-
-                {/* View Dashboard */}
-                <PillButton
-                  onClick={() => onNavigate('dashboard')}
-                  className="py-2.5 px-6 text-[11.5px] font-sans"
-                  textColor="#334155"
-                  pillColor="#B24724"
-                  baseColor="transparent"
-                  hoveredTextColor="#ffffff"
-                >
-                  Dashboard
-                </PillButton>
-
-                {/* Log Out */}
-                <button 
-                  onClick={() => { logout(); onNavigate('home'); }}
-                  className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-100 rounded-full transition-colors shrink-0 cursor-pointer"
-                  title="Log Out Session"
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-3 text-[11px] uppercase tracking-[0.2em] font-bold">
-                <PillButton
-                  onClick={() => onNavigate('login')}
-                  className="py-2.5 px-6 cursor-pointer border-black"
-                  baseColor="transparent"
-                  textColor="#000000"
-                  pillColor="#B24724"
-                  hoveredTextColor="#ffffff"
-                >
-                  Sign In
-                </PillButton>
-                <PillButton
-                  onClick={() => onNavigate('register')}
-                  className="py-2.5 px-6 shadow-sm cursor-pointer border-black"
-                  baseColor="#000000"
-                  textColor="#ffffff"
-                  pillColor="#B24724"
-                  hoveredTextColor="#ffffff"
-                >
-                  Sign Up
-                </PillButton>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <div className="overflow-x-clip pt-[4.5rem] sm:pt-[5rem]">
+      <div className="overflow-x-clip pt-16 sm:pt-[4.5rem]">
       {/* 1. HERO SECTION & VISUAL ENTRY */}
       <section className="relative px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 pb-12 sm:pb-16 select-none max-w-7xl mx-auto">
         <div className="max-w-4xl mx-auto text-center space-y-5 sm:space-y-6">
@@ -261,7 +177,7 @@ export function Index({ onNavigate }: IndexProps) {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-emerald-50 text-emerald-800 rounded-full text-[10px] font-sans font-bold uppercase tracking-[0.25em] border border-emerald-200/40"
+            className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 bg-emerald-50 text-emerald-800 rounded-full text-[9px] sm:text-[10px] font-sans font-bold uppercase tracking-[0.15em] sm:tracking-[0.25em] border border-emerald-200/40 text-center max-w-full"
           >
             <ShieldCheck className="h-3.5 w-3.5" />
             <span>Escrow-Protected Civic Crowdfunding</span>
@@ -271,7 +187,7 @@ export function Index({ onNavigate }: IndexProps) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-4xl sm:text-6xl lg:text-7xl font-serif font-normal text-[#0f0e0e] tracking-tight leading-[1.1] -mt-1 sm:-mt-2"
+            className="text-[1.75rem] leading-[1.12] sm:text-5xl md:text-6xl lg:text-7xl font-serif font-normal text-[#0f0e0e] tracking-tight -mt-1 sm:-mt-2 px-1"
           >
             <span className="block">Fund genuine impact.</span>
             <span className="block text-[#B24724] my-2 sm:my-3 overflow-hidden relative h-[1.15em]">
@@ -335,7 +251,7 @@ export function Index({ onNavigate }: IndexProps) {
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ ...springBouncy, delay: 0.4 }}
-          className="max-w-7xl mx-auto mt-20 sm:mt-24 rounded-2xl overflow-hidden border border-slate-100 shadow-lg relative aspect-[21/9]"
+          className="max-w-7xl mx-auto mt-12 sm:mt-20 md:mt-24 rounded-xl sm:rounded-2xl overflow-hidden border border-slate-100 shadow-lg relative aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/9]"
         >
           <motion.img
             style={{ y: heroImageY }}
@@ -644,7 +560,7 @@ export function Index({ onNavigate }: IndexProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={defaultViewport}
               transition={springBouncy}
-              className="relative h-[480px] w-full rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl border border-slate-900 bg-linear-to-b from-[#020617] via-[#090d1f] to-[#020617] group"
+              className="relative h-[320px] sm:h-[400px] md:h-[480px] w-full rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl border border-slate-900 bg-linear-to-b from-[#020617] via-[#090d1f] to-[#020617] group"
             >
               
               {/* Circular gallery component mount */}
@@ -777,7 +693,7 @@ export function Index({ onNavigate }: IndexProps) {
       </section>
 
       {/* 5. LIVE CIVIC LEDGER STREAM (Premium Horizontal Chronological Timeline) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 my-32">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10 my-16 sm:my-24 lg:my-32">
         <Reveal direction="up" className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-slate-200/50 pb-6">
           <div className="space-y-3 max-w-2xl">
             <h2 className="text-3xl sm:text-4xl font-serif font-normal text-slate-950 tracking-tight">
