@@ -1,0 +1,6 @@
+{
+  "name": "HopeWorks",
+  "description": "Civic-tech crowdfunding platform. Donors fund SDG-aligned projects via escrow; independent Project Managers verify milestones before funds release.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

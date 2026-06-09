@@ -1,0 +1,73 @@
+.pill-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-sizing: border-box;
+  background-color: var(--btn-base, transparent);
+  border: 1.5px solid currentColor;
+  border-radius: 9999px;
+  cursor: pointer;
+  user-select: none;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.p-hover-circle {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  border-radius: 50%;
+  background-color: var(--btn-pill, #000);
+  z-index: 1;
+  display: block;
+  pointer-events: none;
+  transform: translate3d(-50%, 0, 0) scale(0);
+}
+
+.p-label-stack {
+  position: relative;
+  display: inline-block;
+  z-index: 2;
+  color: var(--btn-text, #000);
+  width: 100%;
+}
+
+.p-label {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  color: var(--btn-text, #000);
+  transition: color 0.35s ease;
+}
+
+.p-label-hover {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--btn-hover-text, #fff);
+  z-index: 3;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pill-btn:hover:not(:disabled) {
+  border-color: var(--btn-pill, #000);
+}
+
+.pill-btn-normal {
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 600;
+}

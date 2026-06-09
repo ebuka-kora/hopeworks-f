@@ -1,0 +1,229 @@
+@import url('https://api.fontshare.com/v2/css?f[]=uncut-sans@400,500,600,700,800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Uncut Sans", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-serif: "Uncut Sans", "Fraunces", Georgia, serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* Editorial Accent: Burnt/Crimson/Orange Palette overriding emerald */
+  --color-emerald-50: #FCFBF7;
+  --color-emerald-100: #FFEDD5;
+  --color-emerald-200: #FED7AA;
+  --color-emerald-300: #FDBA74;
+  --color-emerald-400: #FB923C;
+  --color-emerald-500: #EA580C;
+  --color-emerald-600: #EA580C; /* High-fidelity editorial orange */
+  --color-emerald-700: #C2410C;
+  --color-emerald-800: #9A3412;
+  --color-emerald-900: #7C2D12;
+  --color-emerald-950: #431407;
+
+  /* Custom palette matching a professional, high-end civic crowdfunder with orange tones */
+  --color-brand-50: #FCFBF7;
+  --color-brand-100: #FFEDD5;
+  --color-brand-500: #EA580C;
+  --color-brand-600: #EA580C;
+  --color-brand-700: #C2410C;
+  --color-brand-900: #7C2D12;
+
+  /* Remap standard slate grays to elegant, high-contrast warm editorial grays */
+  --color-slate-50: #FAF9F6;  /* Editorial Cream Warm Background */
+  --color-slate-100: #F3F1EC; /* Elegant border and soft grid elements */
+  --color-slate-200: #E6E4DD; /* Stronger borders & divider lines */
+  --color-slate-300: #D0CEBE;
+  --color-slate-400: #A09E90;
+  --color-slate-500: #787569;
+  --color-slate-600: #5C5A50;
+  --color-slate-700: #48463F;
+  --color-slate-800: #2E2D29;
+  --color-slate-900: #121211; /* Warm Charcoal Black */
+
+  --color-dark-50: #FAF9F6;
+  --color-dark-100: #F3F1EC;
+  --color-dark-800: #2E2D29;
+  --color-dark-900: #121211;
+}
+
+/* Base resets or custom scrollbars */
+html {
+  font-family: var(--font-sans);
+  font-size: 122%; /* Globally scale up the Uncut Sans font size so the entire application has larger fonts */
+  scroll-behavior: smooth;
+  background-color: #FAF9F6;
+  color: #121211;
+  overflow-x: clip;
+  max-width: 100%;
+  scrollbar-gutter: stable;
+}
+
+/* Dashboard: tighter typography for dense workspace UI */
+.dashboard-compact {
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.dashboard-compact .text-xs {
+  font-size: 0.625rem;
+  line-height: 1.35;
+}
+
+.dashboard-compact .text-sm {
+  font-size: 0.6875rem;
+  line-height: 1.4;
+}
+
+.dashboard-compact .text-base {
+  font-size: 0.75rem;
+}
+
+.dashboard-compact .text-lg {
+  font-size: 0.8125rem;
+}
+
+.dashboard-compact .text-xl {
+  font-size: 0.875rem;
+}
+
+.dashboard-compact .text-2xl {
+  font-size: 1.0625rem;
+}
+
+.dashboard-compact .text-3xl {
+  font-size: 1.125rem;
+}
+
+.dashboard-compact .text-\[8\.5px\] {
+  font-size: 7px;
+}
+
+.dashboard-compact .text-\[9px\] {
+  font-size: 7.5px;
+}
+
+.dashboard-compact .text-\[10px\] {
+  font-size: 8.5px;
+}
+
+.dashboard-compact .text-\[11px\] {
+  font-size: 9.5px;
+}
+
+.dashboard-compact .text-\[11\.5px\] {
+  font-size: 10px;
+}
+
+.dashboard-compact .text-\[1\.1rem\] {
+  font-size: 1.05rem;
+}
+
+.dashboard-compact .text-\[1\.35rem\] {
+  font-size: 1.05rem;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes hopeworksShine {
+  0% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: 0% center;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes hopeworks-pulse-beat {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  12% {
+    transform: scale(1.14);
+    opacity: 0.92;
+  }
+  24% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  36% {
+    transform: scale(1.2);
+    opacity: 0.88;
+  }
+  52%, 72% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes hopeworks-pulse-ring {
+  0%, 100% {
+    transform: scale(0.92);
+    opacity: 0.35;
+  }
+  12%, 36% {
+    transform: scale(1.18);
+    opacity: 0.12;
+  }
+  52%, 72% {
+    transform: scale(0.92);
+    opacity: 0.35;
+  }
+}
+
+.hopeworks-pulse-beat {
+  animation: hopeworks-pulse-beat 1.35s ease-in-out infinite;
+  transform-origin: center center;
+}
+
+.hopeworks-pulse-ring {
+  animation: hopeworks-pulse-ring 1.35s ease-in-out infinite;
+  transform-origin: center center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-fade-in,
+  .hopeworks-pulse-beat,
+  .hopeworks-pulse-ring,
+  .animate-shine-orange-white {
+    animation: none !important;
+  }
+}
+
+.animate-shine-orange-white {
+  background: linear-gradient(
+    90deg,
+    #EA580C 0%,
+    #FAF9F6 25%,
+    #FF7A30 50%,
+    #FAF9F6 75%,
+    #EA580C 100%
+  );
+  background-size: 200% auto;
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: hopeworksShine 8s linear infinite;
+}
+
