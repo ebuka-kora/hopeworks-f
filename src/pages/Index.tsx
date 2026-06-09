@@ -342,7 +342,7 @@ export function Index({ onNavigate }: IndexProps) {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="max-w-2xl mx-auto text-slate-500 font-sans text-xs sm:text-sm leading-relaxed tracking-wide"
           >
-            HopeWorks secures complete trust across boundaries. Pledged capital rests locked in an auditable escrow ledger. Appointed PM engineers verify physical proofs on the ground before any milestone funds disburse.
+            HopeWorks secures complete trust across boundaries. Pledged capital rests locked in an auditable escrow ledger. Appointed Product Managers verify physical proofs on the ground before any milestone funds disburse.
           </motion.p>
 
           <motion.div
