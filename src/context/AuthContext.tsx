@@ -9,7 +9,13 @@ interface AuthContextType {
   users: UserProfile[];
   loading: boolean;
   login: (email: string, passwordString: string) => Promise<UserProfile>;
-  signUp: (email: string, name: string, selectedRoles: UserRole[], password: string) => Promise<UserProfile>;
+  signUp: (
+    email: string,
+    name: string,
+    selectedRoles: UserRole[],
+    password: string,
+    profileExtras?: { location?: string; fundraisingCategories?: string[] }
+  ) => Promise<UserProfile>;
   loginSimulatedUser: (userId: string) => Promise<void>;
   signInWithOAuth: (provider: 'google' | 'apple') => Promise<void>;
   logout: () => Promise<void>;
@@ -151,10 +157,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signUp = async (email: string, name: string, selectedRoles: UserRole[], password: string): Promise<UserProfile> => {
+  const signUp = async (
+    email: string,
+    name: string,
+    selectedRoles: UserRole[],
+    password: string,
+    profileExtras?: { location?: string; fundraisingCategories?: string[] }
+  ): Promise<UserProfile> => {
     const selfSelected = selectedRoles.filter(r => ['entrepreneur', 'volunteer', 'donor'].includes(r));
-    if (selfSelected.length > 2) {
-      throw new Error('Validation Error: Users can select up to a maximum of 2 roles during self-sign up.');
+    if (selfSelected.length > 1) {
+      throw new Error('Validation Error: Users can select only one role during self-sign up.');
     }
     if (selfSelected.length === 0) {
       throw new Error('Validation Error: Please select at least one role.');
@@ -171,6 +183,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           password,
           name,
           roles: selectedRoles,
+          location: profileExtras?.location,
+          fundraisingCategories: profileExtras?.fundraisingCategories,
         }),
       });
     } catch (err: unknown) {
@@ -215,7 +229,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await apiFetch('/api/auth/setup-profile', {
         method: 'POST',
         headers: { Authorization: `Bearer ${session.access_token}` },
-        body: JSON.stringify({ email: normalizedEmail, name, roles: selectedRoles }),
+        body: JSON.stringify({
+          email: normalizedEmail,
+          name,
+          roles: selectedRoles,
+          location: profileExtras?.location,
+          fundraisingCategories: profileExtras?.fundraisingCategories,
+        }),
       });
     }
 

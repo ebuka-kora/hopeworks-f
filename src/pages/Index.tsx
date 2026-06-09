@@ -53,6 +53,135 @@ const SDG_UNSPLASH_IMAGES: { [key: number]: string } = {
   17: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=600"
 };
 
+const PLATFORM_ROLES = [
+  {
+    abbr: 'PO',
+    title: 'Project Owner',
+    desc: 'Runs accountable, milestone-based campaigns and recruits local volunteers recursively.',
+    responsibilities: ['Milestone Definition', 'Fund & Claim Delivery', 'Volunteer Liaison'],
+    colorBg: 'bg-[#0B4F35]',
+    colorLight: 'bg-[#0B4F35]/15 text-emerald-400 border-[#0B4F35]/30',
+    gradient: 'hover:bg-[#0B4F35]/10 hover:border-[#0B4F35]/40',
+  },
+  {
+    abbr: 'DO',
+    title: 'Donor / Sponsor',
+    desc: 'Funds local work they can verify, with a completely transparent ledger.',
+    responsibilities: ['Milestone Pledging', 'Proof Inspection', 'Escrow Verification'],
+    colorBg: 'bg-[#A9441B]',
+    colorLight: 'bg-[#A9441B]/15 text-orange-400 border-[#A9441B]/30',
+    gradient: 'hover:bg-[#A9441B]/10 hover:border-[#A9441B]/40',
+  },
+  {
+    abbr: 'VO',
+    title: 'Volunteer',
+    desc: 'Contributes skills and time, signs in/out, and earns verified credentials.',
+    responsibilities: ['Sweat Equity Hours', 'Local Skill Sharing', 'Social Impact Mining'],
+    colorBg: 'bg-[#133863]',
+    colorLight: 'bg-[#133863]/15 text-sky-400 border-[#133863]/30',
+    gradient: 'hover:bg-[#133863]/10 hover:border-[#133863]/40',
+  },
+  {
+    abbr: 'PM',
+    title: 'Project Manager (Auditor)',
+    desc: 'An independent neutral professional who travels on-site to verify physically requested milestones.',
+    responsibilities: ['On-site Vetting', 'Proof Endorsement', 'Neutral Oversight'],
+    colorBg: 'bg-[#704A0E]',
+    colorLight: 'bg-[#704A0E]/15 text-amber-400 border-[#704A0E]/30',
+    gradient: 'hover:bg-[#704A0E]/10 hover:border-[#704A0E]/40',
+  },
+  {
+    abbr: 'AD',
+    title: 'Administrator',
+    desc: 'Provides central moderation, identity vetting, assigns verified PMs, and governs platform integrity.',
+    responsibilities: ['Legal Moderation', 'PM Matching', 'Dispute Resolution'],
+    colorBg: 'bg-[#7F1D1D]',
+    colorLight: 'bg-[#7F1D1D]/15 text-red-400 border-[#7F1D1D]/30',
+    gradient: 'hover:bg-[#7F1D1D]/10 hover:border-[#7F1D1D]/40',
+    spanFull: true,
+  },
+] as const;
+
+function RoleCard({
+  role,
+  compact = false,
+}: {
+  role: (typeof PLATFORM_ROLES)[number];
+  compact?: boolean;
+}) {
+  const badge = (
+    <div
+      className={`${role.colorBg} w-10 h-10 rounded-xl flex items-center justify-center font-mono font-black text-xs text-white shrink-0 shadow-sm`}
+    >
+      {role.abbr}
+    </div>
+  );
+
+  const titleRow = (
+    <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+      <h4 className="font-serif font-black text-white text-sm leading-tight">
+        {role.title}
+      </h4>
+      <span className="text-[7.5px] font-mono tracking-wide uppercase px-1.5 py-0.5 rounded bg-white/10 text-slate-400 font-bold shrink-0">
+        Core
+      </span>
+    </div>
+  );
+
+  const description = (
+    <p
+      className={`text-slate-300 font-sans leading-relaxed ${
+        compact ? 'text-xs flex-1' : 'text-[11px] tracking-wide'
+      }`}
+    >
+      {role.desc}
+    </p>
+  );
+
+  const pills = (
+    <div className={`flex flex-wrap gap-1 font-sans ${compact ? '' : 'pt-1'}`}>
+      {role.responsibilities.map((resp) => (
+        <span
+          key={resp}
+          className={`px-1.5 py-0.5 rounded border font-mono font-semibold ${role.colorLight} ${
+            compact ? 'text-[7px]' : 'text-[8px]'
+          }`}
+        >
+          {resp}
+        </span>
+      ))}
+    </div>
+  );
+
+  return (
+    <div
+      className={`bg-slate-900/80 border border-white/5 rounded-2xl transition-all duration-300 group/tile ${role.gradient} ${
+        compact ? 'p-4 h-full' : 'p-5'
+      }`}
+    >
+      {compact ? (
+        <div className="flex flex-col gap-3 h-full">
+          <div className="flex items-center gap-3">
+            {badge}
+            <div className="min-w-0 flex-1">{titleRow}</div>
+          </div>
+          {description}
+          {pills}
+        </div>
+      ) : (
+        <div className="flex items-start gap-4">
+          {badge}
+          <div className="space-y-1.5 flex-1 min-w-0">
+            {titleRow}
+            {description}
+            {pills}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface IndexProps {
   onNavigate: (view: string, id?: string) => void;
 }
@@ -281,144 +410,103 @@ export function Index({ onNavigate }: IndexProps) {
       </section>
 
       {/* OUR COOPERATIVE ROLES MATRIX SECTION */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 select-none my-24 sm:my-32">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative overflow-hidden bg-slate-950 p-8 sm:p-12 rounded-3xl border border-slate-900 shadow-2xl">
-          {/* Background dark image */}
-          <div className="absolute inset-0 z-0 select-none pointer-events-none opacity-40">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 select-none my-16 sm:my-24 lg:my-32">
+        <div className="relative overflow-hidden bg-slate-950 rounded-2xl sm:rounded-3xl border border-slate-900 shadow-2xl">
+          <div className="absolute inset-0 z-0 pointer-events-none opacity-40">
             <img
               src={rolesDarkBgImage}
-              alt="Cooperative dark backdrop"
+              alt=""
               referrerPolicy="no-referrer"
               className="object-cover w-full h-full object-center"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/90 to-slate-950/50" />
+            <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-r from-slate-950 via-slate-950/95 to-slate-950/70" />
           </div>
-          
-          <Reveal direction="left" className="lg:col-span-5 space-y-6 relative z-10">
-            <div className="space-y-2">
-              <label className="text-[10px] font-sans font-bold text-amber-500 uppercase tracking-[0.25em]">Civic Ecosystem</label>
-              <h2 className="text-3xl sm:text-4xl font-serif font-normal text-white tracking-tight leading-tight">
-                Active Platform Cooperation Roles
-              </h2>
-            </div>
-            
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans tracking-wide">
-              HopeWorks operates on clean, accountable synergy between five authorized community roles. Together, they mobilize secure funding, volunteer support, and robust physical milestone auditing to secure local hope.
-            </p>
 
-            <div className="pt-2">
+          <div className="relative z-10 p-5 sm:p-8 lg:p-12 flex flex-col lg:grid lg:grid-cols-12 gap-6 lg:gap-12 lg:items-center">
+            <Reveal direction="left" className="lg:col-span-5 space-y-4 sm:space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-sans font-bold text-amber-500 uppercase tracking-[0.2em] sm:tracking-[0.25em]">
+                  Civic Ecosystem
+                </label>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-normal text-white tracking-tight leading-[1.15]">
+                  Active Platform Cooperation Roles
+                </h2>
+              </div>
+
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans max-w-md lg:max-w-none">
+                HopeWorks operates on clean, accountable synergy between five authorized community roles. Together, they mobilize secure funding, volunteer support, and robust physical milestone auditing.
+              </p>
+
+              <p className="text-[10px] font-mono text-slate-500 lg:hidden">
+                Swipe to explore each role →
+              </p>
+
+              <div className="hidden lg:block pt-1">
+                <PillButton
+                  variant="outline"
+                  onClick={() => onNavigate('how_it_works')}
+                  className="py-3 px-6 text-xs font-sans shadow-xs"
+                >
+                  Learn How Escrow Works
+                  <ArrowRight className="h-4 w-4" />
+                </PillButton>
+              </div>
+            </Reveal>
+
+            {/* Mobile: horizontal swipe cards */}
+            <div className="lg:hidden -mx-1">
+              <div
+                className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 scroll-pl-4 px-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                aria-label="Platform roles"
+              >
+                {PLATFORM_ROLES.map((role) => (
+                  <article
+                    key={role.abbr}
+                    className="snap-center shrink-0 w-[min(84vw,300px)] first:ml-0"
+                  >
+                    <RoleCard role={role} compact />
+                  </article>
+                ))}
+              </div>
+              <div className="flex justify-center gap-1.5 pt-3" aria-hidden>
+                {PLATFORM_ROLES.map((role) => (
+                  <span
+                    key={role.abbr}
+                    className={`h-1.5 rounded-full ${role.colorBg} opacity-60 w-1.5`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Desktop: role grid */}
+            <div className="hidden lg:block lg:col-span-7 bg-slate-900/40 border border-white/10 rounded-3xl p-5 shadow-xs backdrop-blur-xs">
+              <StaggerChildren className="grid grid-cols-2 gap-4" stagger={0.08}>
+                {PLATFORM_ROLES.map((role) => (
+                  <motion.div
+                    key={role.abbr}
+                    whileHover={{ y: -4, scale: 1.01 }}
+                    transition={springBouncy}
+                    className={`hover:shadow-md ${
+                      'spanFull' in role && role.spanFull ? 'col-span-2' : ''
+                    }`}
+                  >
+                    <RoleCard role={role} />
+                  </motion.div>
+                ))}
+              </StaggerChildren>
+            </div>
+
+            <div className="lg:hidden pt-1">
               <PillButton
                 variant="outline"
                 onClick={() => onNavigate('how_it_works')}
-                className="py-3 px-6 text-xs font-sans shadow-xs"
+                className="w-full py-3 text-xs font-sans shadow-xs justify-center"
               >
                 Learn How Escrow Works
                 <ArrowRight className="h-4 w-4" />
               </PillButton>
             </div>
-          </Reveal>
-
-          <div className="lg:col-span-7 bg-slate-900/40 border border-white/10 rounded-3xl p-4 sm:p-5 shadow-xs relative overflow-hidden backdrop-blur-xs z-10">
-            <StaggerChildren className="grid grid-cols-1 sm:grid-cols-2 gap-4" stagger={0.08}>
-              {[
-                {
-                  abbr: 'PO',
-                  title: 'Project Owner',
-                  desc: 'Runs accountable, milestone-based campaigns and recruits local volunteers recursively.',
-                  responsibilities: ['Milestone Definition', 'Fund & Claim Delivery', 'Volunteer Liaison'],
-                  colorBg: 'bg-[#0B4F35]',
-                  colorLight: 'bg-[#0B4F35]/15 text-emerald-400 border-[#0B4F35]/30',
-                  gradient: 'hover:bg-[#0B4F35]/10 hover:border-[#0B4F35]/40'
-                },
-                {
-                  abbr: 'DO',
-                  title: 'Donor / Sponsor',
-                  desc: 'Funds local work they can physically verify, with a completely transparent ledger.',
-                  responsibilities: ['Milestone Pledging', 'Proof Inspection', 'Escrow Verification'],
-                  colorBg: 'bg-[#A9441B]',
-                  colorLight: 'bg-[#A9441B]/15 text-orange-400 border-[#A9441B]/30',
-                  gradient: 'hover:bg-[#A9441B]/10 hover:border-[#A9441B]/40'
-                },
-                {
-                  abbr: 'VO',
-                  title: 'Volunteer',
-                  desc: 'Contributes specialized skills and time, signs in/out, and earns verified credentials.',
-                  responsibilities: ['Sweat Equity Hours', 'Local Skill Sharing', 'Social Impact Mining'],
-                  colorBg: 'bg-[#133863]',
-                  colorLight: 'bg-[#133863]/15 text-sky-400 border-[#133863]/30',
-                  gradient: 'hover:bg-[#133863]/10 hover:border-[#133863]/40'
-                },
-                {
-                  abbr: 'PM',
-                  title: 'Project Manager (Auditor)',
-                  desc: 'An independent neutral professional who travels on-site to verify physically requested milestones.',
-                  responsibilities: ['On-site Vetting', 'Proof Endorsement', 'Neutral Oversight'],
-                  colorBg: 'bg-[#704A0E]',
-                  colorLight: 'bg-[#704A0E]/15 text-amber-400 border-[#704A0E]/30',
-                  gradient: 'hover:bg-[#704A0E]/10 hover:border-[#704A0E]/40'
-                },
-                {
-                  abbr: 'AD',
-                  title: 'Administrator',
-                  desc: 'Provides central moderation, identity vetting, assigns verified PMs, and governs platform integrity.',
-                  responsibilities: ['Legal Moderation', 'PM Matching', 'Dispute Resolution'],
-                  colorBg: 'bg-[#7F1D1D]',
-                  colorLight: 'bg-[#7F1D1D]/15 text-red-400 border-[#7F1D1D]/30',
-                  gradient: 'hover:bg-[#7F1D1D]/10 hover:border-[#7F1D1D]/40',
-                  spanFull: true
-                }
-              ].map((role) => (
-                <motion.div 
-                  key={role.abbr} 
-                  whileHover={{ y: -4, scale: 1.01 }}
-                  transition={springBouncy}
-                  className={`bg-slate-900/80 border border-white/5 p-5 rounded-2xl transition-all duration-300 hover:shadow-md group/tile ${role.gradient} ${role.spanFull ? 'sm:col-span-2' : ''}`}
-                >
-                  <div className="flex items-start gap-4">
-                    <motion.div
-                      whileHover={{ rotate: [0, -6, 6, 0], scale: 1.1 }}
-                      transition={{ duration: 0.35 }}
-                      className={`${role.colorBg} w-10 h-10 rounded-xl flex items-center justify-center font-mono font-black text-xs text-white shrink-0 shadow-sm select-none`}
-                    >
-                      {role.abbr}
-                    </motion.div>
-
-                    <div className="space-y-1.5 flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <h4 className="font-serif font-black text-white text-sm leading-tight truncate">
-                          {role.title}
-                        </h4>
-                        <span className="text-[7.5px] font-mono tracking-wide uppercase px-1.5 py-0.5 rounded bg-white/10 text-slate-400 font-bold">
-                          Core
-                        </span>
-                      </div>
-                      
-                      <p className="text-[11px] text-slate-300 font-sans leading-relaxed tracking-wide">
-                        {role.desc}
-                      </p>
-
-                      {/* Responsibilities pills */}
-                      <div className="flex flex-wrap gap-1 pt-1.5 font-sans">
-                        {role.responsibilities.map((resp, i) => (
-                          <motion.span
-                            key={i}
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            viewport={defaultViewport}
-                            transition={{ ...springBouncy, delay: i * 0.05 }}
-                            className={`px-1.5 py-0.5 rounded border text-[8px] font-mono font-semibold ${role.colorLight}`}
-                          >
-                            {resp}
-                          </motion.span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </StaggerChildren>
           </div>
-
         </div>
       </section>
 

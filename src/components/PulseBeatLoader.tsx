@@ -14,7 +14,7 @@ export function PulseBeatLoader({
     <div
       className={
         fullScreen
-          ? 'fixed inset-0 z-[200] flex items-center justify-center'
+          ? 'fixed inset-0 z-[350] flex items-center justify-center'
           : 'relative flex min-h-[40vh] w-full items-center justify-center py-24'
       }
       role="status"

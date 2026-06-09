@@ -1,12 +1,11 @@
 import React from 'react';
-import { useAuth } from '../context/AuthContext';
 import { VerifiedStamp } from '../components/marks/VerifiedStamp';
 import { EscrowMark } from '../components/marks/EscrowMark';
 import { EvidenceDoc } from '../components/marks/EvidenceDoc';
 import { DonationReceipt } from '../components/marks/DonationReceipt';
 import { MilestoneRail } from '../components/marks/MilestoneRail';
 import { PillButton } from '../components/PillButton';
-import { ArrowLeft, ArrowRight, ShieldCheck, HelpCircle, Users, CheckSquare, Layers } from 'lucide-react';
+import { ArrowRight, ShieldCheck, HelpCircle, Users, CheckSquare, Layers } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Reveal } from '../components/motion/Reveal';
 import { StaggerChildren } from '../components/motion/StaggerChildren';
@@ -17,8 +16,6 @@ interface HowItWorksProps {
 }
 
 export function HowItWorks({ onNavigate }: HowItWorksProps) {
-  const { user } = useAuth();
-
   const steps = [
     {
       mark: <DonationReceipt size={56} />,
@@ -52,28 +49,13 @@ export function HowItWorks({ onNavigate }: HowItWorksProps) {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16 select-none">
-      {/* Return button row */}
-      <div className="flex items-center justify-between">
-        <PillButton
-          variant="outline"
-          caps={false}
-          onClick={() => onNavigate('home')}
-          className="py-2 px-4 text-xs font-mono"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Home
-        </PillButton>
-        <span className="text-[10px] font-mono text-slate-400">HopeWorks Standard Codev Handover Specs</span>
-      </div>
-
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-12 sm:space-y-16 select-none">
       <Reveal direction="bouncy" className="text-center max-w-3xl mx-auto space-y-4">
         <span className="text-[10px] bg-[#B24724]/10 text-[#B24724] px-3.5 py-1.5 rounded-full font-mono font-black uppercase tracking-widest">
           SYSTEM OPERATIONS HANDBOOK
         </span>
-        <h1 className="text-4xl sm:text-5xl font-serif font-normal text-slate-900 tracking-tight leading-[1.12]">
-          Milestone Escrow: <br />
-          Where civic trust meets auditability.
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-normal text-slate-900 tracking-tight leading-[1.15] px-1">
+          Milestone Escrow: Where civic trust meets auditability.
         </h1>
         <p className="text-sm text-slate-500 leading-relaxed max-w-2xl mx-auto">
           HopeWorks operates a trust-gated crowdfunding ecosystem built entirely on the principle that funds should follow visible verified results, preventing speculative fundraising.
@@ -88,7 +70,7 @@ export function HowItWorks({ onNavigate }: HowItWorksProps) {
             whileInView="visible"
             viewport={defaultViewport}
             variants={idx % 2 === 0 ? slideFromLeft : slideFromRight}
-            className={`border border-slate-200 bg-white rounded-3xl p-6 sm:p-10 flex flex-col md:flex-row gap-8 items-start md:items-center justify-between hover:border-slate-300 transition-all shadow-xs`}
+            className="border border-slate-200 bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-10 flex flex-col md:flex-row gap-5 sm:gap-8 items-start md:items-center justify-between hover:border-slate-300 transition-all shadow-xs"
           >
             <div className="md:w-1/4 flex flex-col gap-4">
               <span className="text-xs font-mono font-extrabold text-[#B24724] bg-[#B24724]/5 py-1 px-3 rounded-full w-fit">
@@ -114,14 +96,14 @@ export function HowItWorks({ onNavigate }: HowItWorksProps) {
       </div>
 
       <StaggerChildren className="grid md:grid-cols-2 gap-8 items-stretch pt-6" stagger={0.12}>
-        <div className="border border-slate-200/50 bg-[#FAF9F6]/50 rounded-3xl p-8 flex flex-col justify-between space-y-6">
+        <div className="border border-slate-200/50 bg-[#FAF9F6]/50 rounded-2xl sm:rounded-3xl p-5 sm:p-8 flex flex-col justify-between space-y-6">
           <div className="space-y-4">
             <div className="p-3 bg-[#B24724]/10 rounded-xl w-fit text-[#B24724]">
               <Users className="h-6 w-6" />
             </div>
             <h3 className="text-2xl font-serif text-slate-800 tracking-tight">Our 5-Role Civic Platform Balance</h3>
             <p className="text-xs text-slate-500 leading-relaxed">
-              HopeWorks splits actions across 5 user categories: Project Owner (Entrepreneur), Volunteer, Donor (self-selectable, capped at up to 2 active self-selected roles), and Admin / Project Manager (assigned post-signup by standard operations).
+              HopeWorks splits actions across 5 user categories: Project Owner (Entrepreneur), Volunteer, Donor (pick one role at signup), and Admin / Project Manager (assigned post-signup by standard operations).
             </p>
           </div>
           <div className="grid grid-cols-2 gap-4 text-[10px] font-mono text-slate-500">
@@ -144,7 +126,7 @@ export function HowItWorks({ onNavigate }: HowItWorksProps) {
           </div>
         </div>
 
-        <div className="border border-slate-200 bg-white rounded-3xl p-8 flex flex-col justify-between space-y-6">
+        <div className="border border-slate-200 bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 flex flex-col justify-between space-y-6">
           <div className="space-y-4">
             <div className="p-3 bg-[#B24724]/10 rounded-xl w-fit text-[#B24724]">
               <Layers className="h-6 w-6" />

@@ -14,17 +14,8 @@ interface ProjectsProps {
   onNavigate: (view: string, id?: string) => void;
 }
 
-const SDG_SLIDESHOW_IMAGES = [
-  "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&q=80&w=400", // Construction/Sanitation
-  "https://images.unsplash.com/photo-1546026423-cc4642628d2b?auto=format&fit=crop&q=80&w=400", // Coral / Marine Life
-  "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=400", // Inclusive Literacy
-  "https://images.unsplash.com/photo-1590069261209-f8e9b8642343?auto=format&fit=crop&q=80&w=400", // Communities / Cities
-  "https://images.unsplash.com/photo-1548247416-ec66f4900b2e?auto=format&fit=crop&q=80&w=400", // Well water filtration
-  "https://images.unsplash.com/photo-1559027615-cd96e95224e5?auto=format&fit=crop&q=80&w=400"  // Active volunteering field
-];
-
 const LIVE_ACTIVITIES = [
-  "Pledge Lock Action: $350 successfully escrow-certified for Water Treatment Node (SDG 6).",
+  "Pledge Lock Action: $350 successfully escrow-certified for Water Treatment Campaign (SDG 6).",
   "Auditor Verification: Auditor verified physical telemetry photo for Rain Harvester Grid.",
   "New Volunteer Assigned: Harrison Eldo reserved 12 sweat equity shifts to SDG 4 initiative.",
   "Milestone Verified: Milestone #1 for SDG 14 Restored Coral Nurseries approved by Phil.",
@@ -51,19 +42,8 @@ export function Projects({ onNavigate }: ProjectsProps) {
     return () => clearTimeout(timer);
   }, [searchQuery, selectedSdg, compensationFilter, sortOption]);
 
-  // Live rotating stuff
-  const [imageIdx1, setImageIdx1] = useState(0);
-  const [imageIdx2, setImageIdx2] = useState(1);
   const [activityIdx, setActivityIdx] = useState(0);
   const [animateActivity, setAnimateActivity] = useState(true);
-
-  useEffect(() => {
-    const handle = setInterval(() => {
-      setImageIdx1(prev => (prev + 2) % SDG_SLIDESHOW_IMAGES.length);
-      setImageIdx2(prev => (prev + 2) % SDG_SLIDESHOW_IMAGES.length);
-    }, 3800);
-    return () => clearInterval(handle);
-  }, []);
 
   useEffect(() => {
     const handle = setInterval(() => {
@@ -116,47 +96,21 @@ export function Projects({ onNavigate }: ProjectsProps) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
       
-      <Reveal direction="up" className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center select-none border-b border-slate-200/50 pb-6">
-        <div className="md:col-span-2 space-y-2.5">
-          <label className="text-[10px] font-sans font-bold text-emerald-600 uppercase tracking-[0.25em] leading-none">Civic Directory</label>
-          <h1 className="text-3xl sm:text-4xl font-serif font-normal text-slate-900 tracking-tight">Explore SDG-Aligned Campaigns</h1>
-          <p className="text-xs text-slate-500 max-w-xl leading-relaxed">
-            Securely fund local infrastructure or apply to volunteer your skills directly. Use filters below to target Sustainable Development Goals.
-          </p>
-          <div className="flex items-center gap-4 text-[10px] text-slate-400 font-mono">
-            <span className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              100% Escrow Escorted
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-sky-500 animate-pulse" />
-              SDG Audited Channels
-            </span>
-          </div>
-        </div>
-        
-        {/* Compact Right Side Carousel of Impact Images */}
-        <div className="relative h-28 rounded-2xl overflow-hidden border border-slate-200/40 shadow-xs flex gap-1.5 bg-slate-100 p-1">
-          <div className="flex-1 h-full rounded-xl overflow-hidden relative">
-            <img
-              key={`img-1-${imageIdx1}`}
-              src={SDG_SLIDESHOW_IMAGES[imageIdx1]}
-              alt="Community Action"
-              referrerPolicy="no-referrer"
-              className="object-cover w-full h-full object-center hover:scale-105 transition-all duration-700 animate-fade-in"
-            />
-            <div className="absolute inset-0 bg-black/10" />
-          </div>
-          <div className="flex-1 h-full rounded-xl overflow-hidden relative">
-            <img
-              key={`img-2-${imageIdx2}`}
-              src={SDG_SLIDESHOW_IMAGES[imageIdx2]}
-              alt="SDG Active Focus"
-              referrerPolicy="no-referrer"
-              className="object-cover w-full h-full object-center hover:scale-105 transition-all duration-700 animate-fade-in"
-            />
-            <div className="absolute inset-0 bg-black/10" />
-          </div>
+      <Reveal direction="up" className="space-y-2.5 select-none border-b border-slate-200/50 pb-6">
+        <label className="text-[10px] font-sans font-bold text-emerald-600 uppercase tracking-[0.25em] leading-none">Civic Directory</label>
+        <h1 className="text-3xl sm:text-4xl font-serif font-normal text-slate-900 tracking-tight">Explore SDG-Aligned Campaigns</h1>
+        <p className="text-xs text-slate-500 max-w-xl leading-relaxed">
+          Securely fund local infrastructure or apply to volunteer your skills directly. Use filters below to target Sustainable Development Goals.
+        </p>
+        <div className="flex items-center gap-4 text-[10px] text-slate-400 font-mono">
+          <span className="flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            100% Escrow Escorted
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-sky-500 animate-pulse" />
+            SDG Audited Channels
+          </span>
         </div>
       </Reveal>
 

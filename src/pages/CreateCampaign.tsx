@@ -636,6 +636,7 @@ export function CreateCampaign({ onNavigate }: CreateCampaignProps) {
               caps={false}
               onClick={handleLaunch}
               loading={launching}
+              loadingMessage="Launching campaign"
               className="py-2.5 px-6 text-xs shadow-sm ml-auto"
             >
               {launching ? 'Launching campaign...' : 'Launch campaign & Submit for Review'}

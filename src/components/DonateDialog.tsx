@@ -285,6 +285,7 @@ export function DonateDialog({ project, onClose, onSuccess }: DonateDialogProps)
                 variant="success"
                 caps={false}
                 loading={isSubmitting}
+                loadingMessage="Securing your pledge"
                 onClick={handleMockPayment}
                 Icon={ShieldCheck}
                 className="flex-[2] py-2.5 px-4 text-xs font-mono"

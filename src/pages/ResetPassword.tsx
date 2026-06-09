@@ -6,7 +6,7 @@ import { PillButton } from '../components/PillButton';
 import { ArrowLeft, ArrowRight, Lock, KeyRound, ShieldCheck } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import { supabase } from '../lib/supabase';
-import { PulseBeatLoader } from '../components/PulseBeatLoader';
+import { useLoadingOverlay } from '../context/LoadingOverlayContext';
 import { PasswordInput } from '../components/PasswordInput';
 
 interface ResetPasswordProps {
@@ -20,13 +20,21 @@ export function ResetPassword({ onNavigate }: ResetPasswordProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const { addToast } = useToast();
+  const loadingOverlay = useLoadingOverlay();
   const [hasSession, setHasSession] = useState<boolean | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+    loadingOverlay?.showLoading('Verifying recovery session');
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setHasSession(!!session);
+      if (!cancelled) setHasSession(!!session);
+      loadingOverlay?.hideLoading();
     });
-  }, []);
+    return () => {
+      cancelled = true;
+      loadingOverlay?.hideLoading();
+    };
+  }, [loadingOverlay]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,9 +75,6 @@ export function ResetPassword({ onNavigate }: ResetPasswordProps) {
 
   return (
     <div className="min-h-[calc(100vh-4.5rem)] bg-[#F8F9FA] flex items-center justify-center p-6 select-none font-sans relative">
-      {(loading || isCheckingSession) && (
-        <PulseBeatLoader message={isCheckingSession ? 'Verifying recovery session' : 'Updating password'} />
-      )}
       <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-8 sm:p-10 space-y-8 shadow-xs">
         {/* TOP BRAND INFO ROW */}
         <div className="flex flex-col items-center text-center space-y-4">
@@ -142,6 +147,7 @@ export function ResetPassword({ onNavigate }: ResetPasswordProps) {
             <PillButton
               type="submit"
               loading={loading}
+              loadingMessage="Updating password"
               className="w-full py-3.5 cursor-pointer shadow-xs border-slate-200 mt-2"
               baseColor="transparent"
               textColor="#334155"

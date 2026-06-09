@@ -143,7 +143,7 @@ export function ProjectDetail({
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 40 }}
             transition={springBouncy}
-            className="fixed top-20 right-4 sm:right-6 bg-emerald-900 border border-emerald-700 text-white px-5 py-3.5 rounded-xl shadow-xl z-50 flex items-center gap-3 text-xs font-mono font-medium"
+            className="fixed top-20 inset-x-4 sm:inset-x-auto sm:right-6 sm:left-auto sm:max-w-md z-50 bg-emerald-900 border border-emerald-700 text-white px-4 sm:px-5 py-3 sm:py-3.5 rounded-xl shadow-xl flex items-center gap-3 text-[11px] sm:text-xs font-mono font-medium"
           >
             <Check className="h-4.5 w-4.5 text-emerald-300 stroke-[3]" />
             <span>{successToast}</span>
@@ -301,7 +301,7 @@ export function ProjectDetail({
                 animate={{ opacity: 1, y: 0 }}
                 transition={springBouncy}
               >
-                <MilestonePanel project={project} />
+                <MilestonePanel project={project} onMilestoneUpdated={refreshProjects} />
               </motion.div>
             )}
 

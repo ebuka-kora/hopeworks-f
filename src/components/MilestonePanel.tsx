@@ -7,13 +7,16 @@ import { useAssignmentsStore } from '../hooks/useAssignmentsStore';
 import { StatusBadge } from './ui/StatusBadge';
 import { Play, FileText, CheckCircle2, AlertTriangle, ChevronRight, Check, X, ShieldAlert, Sparkles, Building, Handshake } from 'lucide-react';
 import { PillButton } from './PillButton';
+import { useToast } from '../context/ToastContext';
 
 interface MilestonePanelProps {
   project: Project;
+  onMilestoneUpdated?: () => Promise<void>;
 }
 
-export function MilestonePanel({ project }: MilestonePanelProps) {
+export function MilestonePanel({ project, onMilestoneUpdated }: MilestonePanelProps) {
   const { user } = useAuth();
+  const { toast } = useToast();
   const { startMilestone, submitMilestoneEvidence, reviewMilestone } = useProjectsStore();
   const { getForProject } = useAssignmentsStore();
 
@@ -25,8 +28,13 @@ export function MilestonePanel({ project }: MilestonePanelProps) {
   const [actionError, setActionError] = useState<string>("");
   const [customEvidenceUrl, setCustomEvidenceUrl] = useState<string>("");
   const [uploadingEvidence, setUploadingEvidence] = useState(false);
-  const [reviewing, setReviewing] = useState(false);
+  const [reviewingAction, setReviewingAction] = useState<'approved' | 'rejected' | null>(null);
+  const [startingMilestone, setStartingMilestone] = useState(false);
   const evidenceFileRef = useRef<HTMLInputElement>(null);
+
+  const syncProjectView = async () => {
+    await onMilestoneUpdated?.();
+  };
 
   const MAX_EVIDENCE_SIZE = 5 * 1024 * 1024;
 
@@ -43,11 +51,18 @@ export function MilestonePanel({ project }: MilestonePanelProps) {
   ];
 
   const handleStart = async (idx: number) => {
+    setStartingMilestone(true);
     try {
       setActionError("");
       await startMilestone(project.id, idx);
+      await syncProjectView();
+      toast.success(`Milestone #${idx + 1} is now active.`);
     } catch (e: any) {
-      setActionError(e?.message || "Could not spin up milestone.");
+      const message = e?.message || 'Could not spin up milestone.';
+      setActionError(message);
+      toast.error(message);
+    } finally {
+      setStartingMilestone(false);
     }
   };
 
@@ -118,12 +133,14 @@ export function MilestonePanel({ project }: MilestonePanelProps) {
       setIsSubmitting(true);
       setActionError("");
       await submitMilestoneEvidence(project.id, idx, evidenceUrls, evidenceDesc.trim());
-      
-      // Clear local arrays
       setEvidenceDesc("");
       setEvidenceUrls([]);
+      await syncProjectView();
+      toast.success('Evidence submitted for auditor review.');
     } catch (e: any) {
-      setActionError(e?.message || "Failed to submit milestone audit package.");
+      const message = e?.message || 'Failed to submit milestone audit package.';
+      setActionError(message);
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -132,18 +149,27 @@ export function MilestonePanel({ project }: MilestonePanelProps) {
   const handlePMReview = async (idx: number, status: 'approved' | 'rejected') => {
     if (status === 'rejected' && !feedback.trim()) {
       setActionError("Auditor feedback is strictly required when requesting revision or rejecting milestones.");
+      toast.warning('Add auditor commentary before requesting a revision.');
       return;
     }
 
-    setReviewing(true);
+    setReviewingAction(status);
     try {
       setActionError("");
       await reviewMilestone(project.id, idx, status, feedback.trim());
       setFeedback("");
+      await syncProjectView();
+      if (status === 'approved') {
+        toast.success('Funding verified and released to the campaign owner.');
+      } else {
+        toast.success('Revision request sent to the campaign owner.');
+      }
     } catch (e: any) {
-      setActionError(e?.message || "Failed to review milestone.");
+      const message = e?.message || 'Failed to review milestone.';
+      setActionError(message);
+      toast.error(message);
     } finally {
-      setReviewing(false);
+      setReviewingAction(null);
     }
   };
 
@@ -267,6 +293,8 @@ export function MilestonePanel({ project }: MilestonePanelProps) {
                         variant="primary"
                         caps={false}
                         onClick={() => handleStart(activeTab)}
+                        loading={startingMilestone}
+                        loadingMessage="Starting milestone..."
                         className="py-2 px-5 text-xs font-mono"
                       >
                         <Play className="h-3.5 w-3.5 fill-current" /> Start Milestone #{activeTab + 1}
@@ -402,9 +430,10 @@ export function MilestonePanel({ project }: MilestonePanelProps) {
                         variant="success"
                         caps={false}
                         loading={isSubmitting}
+                        loadingMessage="Submitting evidence for audit..."
                         className="py-2.5 px-5 text-xs font-mono shadow-sm w-full"
                       >
-                        {isSubmitting ? 'Submitting Block...' : 'Lock Evidence & Request Escrow Disbursement Audit'}
+                        Lock Evidence & Request Escrow Disbursement Audit
                       </PillButton>
 
                     </form>
@@ -485,7 +514,9 @@ export function MilestonePanel({ project }: MilestonePanelProps) {
                           variant="muted"
                           caps={false}
                           onClick={() => handlePMReview(activeTab, 'rejected')}
-                          loading={reviewing}
+                          loading={reviewingAction === 'rejected'}
+                          loadingMessage="Sending revision request..."
+                          disabled={reviewingAction === 'approved'}
                           className="flex-1 py-2 px-4 text-xs font-mono"
                         >
                           Request Revision
@@ -495,7 +526,9 @@ export function MilestonePanel({ project }: MilestonePanelProps) {
                           variant="success"
                           caps={false}
                           onClick={() => handlePMReview(activeTab, 'approved')}
-                          loading={reviewing}
+                          loading={reviewingAction === 'approved'}
+                          loadingMessage="Verifying & releasing funds..."
+                          disabled={reviewingAction === 'rejected'}
                           className="flex-1 py-2 px-4 text-xs font-mono"
                         >
                           Verify & Release Funding

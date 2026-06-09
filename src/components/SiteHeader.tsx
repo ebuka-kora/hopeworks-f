@@ -25,8 +25,7 @@ export function SiteHeader({
   showNotifications = false,
 }: SiteHeaderProps) {
   const { user, logout } = useAuth();
-  const { notifications } = useNotificationsStore(user?.id);
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const { unreadCount } = useNotificationsStore(user?.id);
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -79,12 +78,12 @@ export function SiteHeader({
         <button
           type="button"
           onClick={() => navigate('notifications')}
-          className="relative text-slate-500 hover:text-slate-800 p-2 hover:bg-slate-50 rounded-full transition-colors"
+          className="relative text-slate-500 hover:text-[#B24724] p-2 hover:bg-orange-50 rounded-full transition-colors duration-200"
           aria-label="Notifications"
         >
           <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
-            <span className="absolute top-1 right-1 bg-rose-500 text-white text-[8px] font-bold h-3.5 w-3.5 rounded-full flex items-center justify-center ring-2 ring-white">
+            <span className="absolute top-1 right-1 bg-[#B24724] text-white text-[8px] font-bold h-3.5 w-3.5 rounded-full flex items-center justify-center ring-2 ring-white">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
@@ -160,29 +159,7 @@ export function SiteHeader({
             <Logo iconSize={30} />
           </button>
 
-          <nav className="hidden md:flex items-center justify-center gap-1 flex-1 px-4" aria-label="Main">
-            {NAV_LINKS.map(({ label, view, icon: Icon }) => (
-              <button
-                key={view}
-                type="button"
-                onClick={() => navigate(view)}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-[#B24724] rounded-lg hover:bg-orange-50/50 transition-colors"
-              >
-                <Icon className="h-3.5 w-3.5" />
-                {label}
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={() => navigate('create_campaign')}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-[#B24724] rounded-lg hover:bg-orange-50/50 transition-colors"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              Create Campaign
-            </button>
-          </nav>
-
-          <div className="hidden md:flex items-center gap-2 shrink-0">
+          <div className="hidden md:flex items-center gap-2 shrink-0 ml-auto">
             {user ? userActions() : guestActions}
           </div>
 
@@ -283,7 +260,7 @@ export function SiteHeader({
                           Notifications
                         </span>
                         {unreadCount > 0 && (
-                          <span className="text-[10px] font-bold bg-rose-500 text-white px-1.5 py-0.5 rounded-full">
+                          <span className="text-[10px] font-bold bg-[#B24724] text-white px-1.5 py-0.5 rounded-full">
                             {unreadCount}
                           </span>
                         )}

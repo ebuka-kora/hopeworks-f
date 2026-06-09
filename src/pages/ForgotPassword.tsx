@@ -5,7 +5,6 @@ import { Logo } from '../components/Logo';
 import { PillButton } from '../components/PillButton';
 import { ArrowLeft, ArrowRight, Mail, ShieldCheck } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { PulseBeatLoader } from '../components/PulseBeatLoader';
 
 interface ForgotPasswordProps {
   onNavigate: (view: string) => void;
@@ -42,7 +41,6 @@ export function ForgotPassword({ onNavigate }: ForgotPasswordProps) {
 
   return (
     <div className="min-h-[calc(100vh-4.5rem)] bg-[#F8F9FA] flex items-center justify-center p-6 select-none font-sans relative">
-      {loading && <PulseBeatLoader message="Sending recovery link" />}
       <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-8 sm:p-10 space-y-8 shadow-xs">
         {/* LOGO TITLE ROW */}
         <div className="flex flex-col items-center text-center space-y-4">
@@ -83,6 +81,7 @@ export function ForgotPassword({ onNavigate }: ForgotPasswordProps) {
             <PillButton
               type="submit"
               loading={loading}
+              loadingMessage="Sending recovery link"
               className="w-full py-3.5 cursor-pointer shadow-xs border-slate-200"
               baseColor="transparent"
               textColor="#334155"

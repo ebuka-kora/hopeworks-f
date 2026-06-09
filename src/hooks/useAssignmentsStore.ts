@@ -27,6 +27,10 @@ export function useAssignmentsStore() {
       await refresh();
       return created;
     },
+    unassignProject: async (projectId: string) => {
+      await apiFetch(`/api/assignments/${projectId}`, { method: 'DELETE' });
+      await refresh();
+    },
     listByPm: (pmId: string) => assignments.filter(a => a.pmId === pmId),
     getForProject: (projectId: string) => assignments.find(a => a.projectId === projectId),
   };

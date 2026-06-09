@@ -92,7 +92,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {children}
       
       {/* Toast Alert Portal Container */}
-      <div className="fixed top-6 right-6 z-50 flex flex-col gap-3.5 w-full max-w-sm pointer-events-none select-none">
+      <div className="fixed z-[100] flex flex-col gap-3 pointer-events-none select-none top-4 inset-x-4 sm:inset-x-auto sm:right-6 sm:top-6 sm:w-full sm:max-w-sm">
         <AnimatePresence mode="popLayout">
           {toasts.map((t) => {
             const styles = getToastStyles(t.type);
@@ -106,7 +106,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
                 exit={{ opacity: 0, x: 100, scale: 0.9, transition: { duration: 0.25 } }}
                 transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-                className={`pointer-events-auto border rounded-2xl p-4 shadow-xl backdrop-blur-md relative overflow-hidden flex items-start gap-3 w-full ${styles.bg}`}
+                className={`pointer-events-auto border rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-xl backdrop-blur-md relative overflow-hidden flex items-start gap-2.5 sm:gap-3 w-full min-w-0 ${styles.bg}`}
               >
                 {/* Status Indicator Icon */}
                 <div className={`shrink-0 mt-0.5 ${styles.iconColor}`}>
@@ -114,11 +114,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 </div>
 
                 {/* Body Text */}
-                <div className="flex-grow pr-4 space-y-0.5 text-left">
-                  <span className="text-[10px] font-mono tracking-wider opacity-60 uppercase font-bold block">
+                <div className="flex-1 min-w-0 pr-2 sm:pr-4 space-y-0.5 text-left">
+                  <span className="text-[9px] sm:text-[10px] font-mono tracking-wider opacity-60 uppercase font-bold block">
                     {t.type} system signal
                   </span>
-                  <p className="text-xs font-sans font-medium leading-relaxed leading-snug">
+                  <p className="text-[11px] sm:text-xs font-sans font-medium leading-snug break-words">
                     {t.message}
                   </p>
                 </div>

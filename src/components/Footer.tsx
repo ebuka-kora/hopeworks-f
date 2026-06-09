@@ -12,93 +12,63 @@ interface FooterProps {
   onNavigate?: (view: string) => void;
 }
 
+const FOOTER_LINKS = [
+  { label: 'Volunteer Availability', view: 'availability' },
+  { label: 'Bylaw Rules', view: 'home' },
+  { label: 'Terms of Service', view: 'terms' },
+  { label: 'Privacy Policy', view: 'privacy' },
+] as const;
+
 export function Footer({ onNavigate }: FooterProps) {
   const [modalContent, setModalContent] = useState<{ title: string; body: string } | null>(null);
 
-  const showTerms = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (onNavigate) {
-      onNavigate('terms');
-    }
-  };
-
-  const showPrivacy = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (onNavigate) {
-      onNavigate('privacy');
-    }
+  const handleLink = (view: string) => {
+    if (onNavigate) onNavigate(view);
   };
 
   return (
     <footer className="bg-[#050C16] text-slate-400 border-t border-slate-900 pt-16 pb-0 select-none overflow-hidden relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         
-        {/* Row 1: Centered Terms of Service / Links matching site brand font pairings */}
-        <StaggerChildren
-          className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs md:text-sm font-sans text-slate-400"
-          stagger={0.06}
-          itemClassName="inline-flex"
-        >
-          <motion.button
-            onClick={() => onNavigate && onNavigate('explore')}
-            className="relative hover:text-orange-500 transition-colors cursor-pointer font-medium group"
-            whileHover={{ y: -2 }}
-            transition={springBouncy}
+        {/* Row 1: single column on mobile, inline with bullets on sm+ */}
+        <Reveal direction="up" className="text-xs md:text-sm font-sans text-slate-400">
+          <nav
+            className="flex flex-col items-center gap-0.5 sm:hidden"
+            aria-label="Footer navigation"
           >
-            Explore SDG campaigns
-            <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-orange-500 transition-all group-hover:w-full" />
-          </motion.button>
-          <span className="text-slate-700 hidden sm:inline">•</span>
-          <motion.button
-            onClick={() => onNavigate && onNavigate('how_it_works')}
-            className="relative hover:text-orange-500 transition-colors cursor-pointer font-medium group"
-            whileHover={{ y: -2 }}
-            transition={springBouncy}
+            {FOOTER_LINKS.map((link) => (
+              <button
+                key={link.view}
+                type="button"
+                onClick={() => handleLink(link.view)}
+                className="w-full max-w-xs py-2.5 text-center hover:text-orange-500 transition-colors cursor-pointer font-medium"
+              >
+                {link.label}
+              </button>
+            ))}
+          </nav>
+
+          <nav
+            className="hidden sm:flex flex-wrap items-center justify-center gap-x-8 gap-y-3"
+            aria-label="Footer navigation"
           >
-            How it Works
-            <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-orange-500 transition-all group-hover:w-full" />
-          </motion.button>
-          <span className="text-slate-700 hidden sm:inline">•</span>
-          <motion.button
-            onClick={() => onNavigate && onNavigate('availability')}
-            className="relative hover:text-orange-500 transition-colors cursor-pointer font-medium group"
-            whileHover={{ y: -2 }}
-            transition={springBouncy}
-          >
-            Volunteer Availability
-            <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-orange-500 transition-all group-hover:w-full" />
-          </motion.button>
-          <span className="text-slate-700 hidden sm:inline">•</span>
-          <motion.button
-            onClick={() => onNavigate && onNavigate('home')}
-            className="relative hover:text-orange-500 transition-colors cursor-pointer font-medium group"
-            whileHover={{ y: -2 }}
-            transition={springBouncy}
-          >
-            Bylaw Rules
-            <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-orange-500 transition-all group-hover:w-full" />
-          </motion.button>
-          <span className="text-slate-700 hidden sm:inline">•</span>
-          <motion.button
-            onClick={showTerms}
-            className="relative hover:text-orange-500 transition-colors cursor-pointer font-medium group"
-            whileHover={{ y: -2 }}
-            transition={springBouncy}
-          >
-            Terms of Service
-            <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-orange-500 transition-all group-hover:w-full" />
-          </motion.button>
-          <span className="text-slate-700 hidden sm:inline">•</span>
-          <motion.button
-            onClick={showPrivacy}
-            className="relative hover:text-orange-500 transition-colors cursor-pointer font-medium group"
-            whileHover={{ y: -2 }}
-            transition={springBouncy}
-          >
-            Privacy Policy
-            <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-orange-500 transition-all group-hover:w-full" />
-          </motion.button>
-        </StaggerChildren>
+            {FOOTER_LINKS.map((link, index) => (
+              <React.Fragment key={link.view}>
+                {index > 0 && <span className="text-slate-700">•</span>}
+                <motion.button
+                  type="button"
+                  onClick={() => handleLink(link.view)}
+                  className="relative hover:text-orange-500 transition-colors cursor-pointer font-medium group"
+                  whileHover={{ y: -2 }}
+                  transition={springBouncy}
+                >
+                  {link.label}
+                  <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-orange-500 transition-all group-hover:w-full" />
+                </motion.button>
+              </React.Fragment>
+            ))}
+          </nav>
+        </Reveal>
 
         {/* Separation Divider line */}
         <div className="h-px bg-gradient-to-r from-transparent via-slate-800 to-transparent" />
@@ -112,7 +82,7 @@ export function Footer({ onNavigate }: FooterProps) {
               <Logo iconSize={18} showText={true} textColorClass="text-slate-200" className="inline-flex" />
             </div>
             <p className="text-[10px] text-slate-600 font-mono">
-              High-Integrity SDG Milestone escrow nodes. Registered Public Benefits Crowdfunding.
+              High-Integrity SDG Milestone escrow. Registered Public Benefits Crowdfunding.
             </p>
           </div>
 
