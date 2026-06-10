@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Search, SlidersHorizontal, ChevronDown, Plus } from 'lucide-react';
+import { Search, Plus } from 'lucide-react';
 import { springDashboard } from '../../lib/motion';
 import { PillButton } from '../PillButton';
 
@@ -134,18 +134,11 @@ export function DashboardToolbar({
           className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#B24724]/50 focus:ring-2 focus:ring-[#B24724]/10 transition-all"
         />
       </div>
-      <div className="flex flex-wrap gap-2 shrink-0">
-        <PillButton variant="muted" caps={false} className="px-3 py-2 text-xs">
-          <SlidersHorizontal className="h-3.5 w-3.5 text-slate-400" />
-          Filters
-          <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
-        </PillButton>
-        <PillButton variant="muted" caps={false} className="px-3 py-2 text-xs">
-          Time
-          <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
-        </PillButton>
-        {children}
-      </div>
+      {children && (
+        <div className="flex flex-wrap gap-2 shrink-0">
+          {children}
+        </div>
+      )}
     </div>
   );
 }

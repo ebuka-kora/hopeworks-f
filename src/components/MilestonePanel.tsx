@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { apiUpload } from '../lib/apiClient';
 import { Project, Milestone } from '../types';
 import { useAuth } from '../context/AuthContext';
@@ -17,7 +17,7 @@ interface MilestonePanelProps {
 export function MilestonePanel({ project, onMilestoneUpdated }: MilestonePanelProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { startMilestone, submitMilestoneEvidence, reviewMilestone } = useProjectsStore();
+  const { autoAdvanceMilestones, submitMilestoneEvidence, reviewMilestone } = useProjectsStore();
   const { getForProject } = useAssignmentsStore();
 
   const [activeTab, setActiveTab] = useState<number>(0);
@@ -29,18 +29,70 @@ export function MilestonePanel({ project, onMilestoneUpdated }: MilestonePanelPr
   const [customEvidenceUrl, setCustomEvidenceUrl] = useState<string>("");
   const [uploadingEvidence, setUploadingEvidence] = useState(false);
   const [reviewingAction, setReviewingAction] = useState<'approved' | 'rejected' | null>(null);
-  const [startingMilestone, setStartingMilestone] = useState(false);
+  const [autoAdvancing, setAutoAdvancing] = useState(false);
   const evidenceFileRef = useRef<HTMLInputElement>(null);
+
+  const assignment = getForProject(project.id);
+  const isPM = user && assignment && assignment.pmId === user.id;
+  const isOwner = user && project.ownerId === user.id;
 
   const syncProjectView = async () => {
     await onMilestoneUpdated?.();
   };
 
-  const MAX_EVIDENCE_SIZE = 5 * 1024 * 1024;
+  const getWorkingMilestoneIndex = () => {
+    const actionable = project.milestones.findIndex(
+      (m) => m.status === 'in_progress' || m.status === 'rejected' || m.status === 'submitted'
+    );
+    if (actionable !== -1) return actionable;
+    const pending = project.milestones.findIndex(
+      (m, i) => m.status === 'pending' && (i === 0 || project.milestones[i - 1].status === 'approved')
+    );
+    if (pending !== -1) return pending;
+    return 0;
+  };
 
-  const assignment = getForProject(project.id);
-  const isPM = user && assignment && assignment.pmId === user.id;
-  const isOwner = user && project.ownerId === user.id;
+  useEffect(() => {
+    setActiveTab(getWorkingMilestoneIndex());
+  }, [project.id]);
+
+  useEffect(() => {
+    if (!isOwner) return;
+
+    const hasEligiblePending = project.milestones.some(
+      (m, i) => m.status === 'pending' && (i === 0 || project.milestones[i - 1].status === 'approved')
+    );
+    if (!hasEligiblePending) return;
+
+    let cancelled = false;
+    (async () => {
+      setAutoAdvancing(true);
+      try {
+        const result = await autoAdvanceMilestones(project.id);
+        if (cancelled) return;
+        if (result.started) {
+          await syncProjectView();
+          setActiveTab(result.startedIndex ?? 0);
+          toast.success(`Milestone #${(result.startedIndex ?? 0) + 1} started automatically.`);
+        } else if (result.blocked) {
+          setActiveTab(result.blockingIndex ?? 0);
+          toast.warning(
+            `Submit evidence for Milestone #${(result.blockingIndex ?? 0) + 1} before the next milestone can begin.`
+          );
+        }
+      } catch {
+        // Owner can retry by revisiting the workspace.
+      } finally {
+        if (!cancelled) setAutoAdvancing(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [project.id, project.milestones.map((m) => m.status).join('|'), isOwner]);
+
+  const MAX_EVIDENCE_SIZE = 5 * 1024 * 1024;
 
   // Handy mockup evidence presets
   const evidencePresets = [
@@ -49,22 +101,6 @@ export function MilestonePanel({ project, onMilestoneUpdated }: MilestonePanelPr
     { label: "Community Water Council Signature", url: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400" },
     { label: "Lombok Reef Seed Matrix Image", url: "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?auto=format&fit=crop&q=80&w=400" }
   ];
-
-  const handleStart = async (idx: number) => {
-    setStartingMilestone(true);
-    try {
-      setActionError("");
-      await startMilestone(project.id, idx);
-      await syncProjectView();
-      toast.success(`Milestone #${idx + 1} is now active.`);
-    } catch (e: any) {
-      const message = e?.message || 'Could not spin up milestone.';
-      setActionError(message);
-      toast.error(message);
-    } finally {
-      setStartingMilestone(false);
-    }
-  };
 
   const handleAddPresetEvidence = (url: string) => {
     if (!evidenceUrls.includes(url)) {
@@ -226,7 +262,16 @@ export function MilestonePanel({ project, onMilestoneUpdated }: MilestonePanelPr
         {/* Workspace Header */}
         {(() => {
           const m = project.milestones[activeTab];
-          const canUserStart = isOwner && m.status === 'pending' && (activeTab === 0 || project.milestones[activeTab - 1].status === 'approved');
+          const submissionNeededIndex = project.milestones.findIndex(
+            (ms) => ms.status === 'in_progress' || ms.status === 'rejected'
+          );
+          const nextPendingIndex = project.milestones.findIndex(
+            (ms, i) => ms.status === 'pending' && (i === 0 || project.milestones[i - 1].status === 'approved')
+          );
+          const advanceBlocked =
+            submissionNeededIndex !== -1 &&
+            nextPendingIndex !== -1 &&
+            submissionNeededIndex !== nextPendingIndex;
 
           return (
             <div className="space-y-6">
@@ -272,7 +317,13 @@ export function MilestonePanel({ project, onMilestoneUpdated }: MilestonePanelPr
 
               {/* STAGE-SPECIFIC INTERACTIVE WORKSPACE */}
 
-              {/* 1. Pending Stage: Owner workflow to start */}
+              {advanceBlocked && isOwner && activeTab === submissionNeededIndex && (
+                <div className="p-3.5 bg-amber-50 border border-amber-200 text-xs font-sans text-amber-900 rounded-xl leading-relaxed">
+                  Submit evidence for Milestone #{submissionNeededIndex + 1} before Milestone #{nextPendingIndex + 1} can begin automatically.
+                </div>
+              )}
+
+              {/* 1. Pending Stage: auto-starts when eligible */}
               {m.status === 'pending' && (
                 <div className="border border-slate-100 rounded-xl p-5 bg-slate-50/50 space-y-4">
                   <div className="flex gap-3">
@@ -280,33 +331,20 @@ export function MilestonePanel({ project, onMilestoneUpdated }: MilestonePanelPr
                       <Play className="h-5 w-5 fill-orange-500/10" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-semibold font-serif text-slate-800 leading-snug">Commence Milestone Work</h4>
+                      <h4 className="text-sm font-semibold font-serif text-slate-800 leading-snug">Milestone queued</h4>
                       <p className="text-xs text-slate-500 leading-relaxed max-w-md mt-0.5">
-                        Before spending funds or collecting evidence, flag the milestone active to notify PMs and secure escrow priority.
+                        {autoAdvancing
+                          ? 'Starting this milestone automatically and notifying your assigned PM…'
+                          : activeTab === 0 || project.milestones[activeTab - 1].status === 'approved'
+                            ? 'This milestone will start automatically once the workspace loads. You can then collect evidence and submit for PM review.'
+                            : 'Complete and obtain PM verification for the previous milestone first. The next one will start automatically after approval.'}
                       </p>
                     </div>
                   </div>
 
-                  {isOwner ? (
-                    canUserStart ? (
-                      <PillButton
-                        variant="primary"
-                        caps={false}
-                        onClick={() => handleStart(activeTab)}
-                        loading={startingMilestone}
-                        loadingMessage="Starting milestone..."
-                        className="py-2 px-5 text-xs font-mono"
-                      >
-                        <Play className="h-3.5 w-3.5 fill-current" /> Start Milestone #{activeTab + 1}
-                      </PillButton>
-                    ) : (
-                      <div className="p-3 bg-orange-50/50 border border-orange-200/50 rounded-lg text-[11px] font-mono text-orange-850 leading-relaxed">
-                        🔒 Milestone Linked: Backed by sequential constraints. You must complete and obtain PM verification for Milestone {activeTab} before launching Milestone {activeTab + 1}.
-                      </div>
-                    )
-                  ) : (
+                  {!isOwner && (
                     <div className="text-[11px] text-slate-400 italic">
-                      Waiting for the campaign creator Patricia Eldo to initiate work.
+                      Waiting for the campaign owner to begin milestone work.
                     </div>
                   )}
                 </div>
