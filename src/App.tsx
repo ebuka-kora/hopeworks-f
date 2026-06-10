@@ -33,6 +33,11 @@ import {
 } from './lib/roleAccess';
 import { UserRole } from './types';
 import { clearNav, readInitialNav, saveNav } from './lib/navPersistence';
+import {
+  clearCampaignShareUrl,
+  readCampaignIdFromUrl,
+  setCampaignShareUrl,
+} from './lib/campaignShare';
 import type { DashboardPanel, DeskTab } from './lib/roleAccess';
 
 type ProjectDetailAction = 'donate' | 'volunteer';
@@ -122,6 +127,21 @@ function AppContent() {
   }, [authLoading, user, view, dashboardPanel]);
 
   useEffect(() => {
+    if (authLoading) return;
+    const campaignId = readCampaignIdFromUrl();
+    if (!campaignId) return;
+
+    setSelectedProjectId(campaignId);
+    if (user) {
+      setView('dashboard');
+      setDashboardPanel('project_detail');
+    } else {
+      setView('project_detail');
+      setDashboardPanel(undefined);
+    }
+  }, [authLoading, user]);
+
+  useEffect(() => {
     const isDashboard = view === 'dashboard' || view === 'all_dashboards';
     saveNav({
       view,
@@ -144,6 +164,11 @@ function AppContent() {
       setDashboardPanel(panel);
       setActiveDesk(activeTab);
       setSelectedProjectId(projectId);
+      if (panel === 'project_detail' && projectId) {
+        setCampaignShareUrl(projectId);
+      } else {
+        clearCampaignShareUrl();
+      }
     },
     []
   );
@@ -213,13 +238,19 @@ function AppContent() {
       if (user) {
         setView('dashboard');
         setDashboardPanel('project_detail');
-        if (id) setSelectedProjectId(id);
+        if (id) {
+          setSelectedProjectId(id);
+          setCampaignShareUrl(id);
+        }
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
       setView('project_detail');
       setDashboardPanel(undefined);
-      if (id) setSelectedProjectId(id);
+      if (id) {
+        setSelectedProjectId(id);
+        setCampaignShareUrl(id);
+      }
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -228,6 +259,9 @@ function AppContent() {
 
     if (newView === 'home') {
       clearNav();
+      clearCampaignShareUrl();
+    } else if (newView !== 'project_detail') {
+      clearCampaignShareUrl();
     }
 
     if (user && WORKSPACE_VIEWS.has(newView)) {

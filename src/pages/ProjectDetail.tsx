@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ProjectSkeleton } from '../components/ProjectSkeleton';
 import { scaleIn, springBouncy } from '../lib/motion';
 import { PillButton } from '../components/PillButton';
+import { ShareCampaignButton } from '../components/ShareCampaignButton';
 import { getActionDeniedMessage, userCanPerformAction } from '../lib/roleAccess';
 
 interface ProjectDetailProps {
@@ -163,7 +164,8 @@ export function ProjectDetail({
           <h1 className="font-serif font-semibold text-2xl sm:text-3xl tracking-tight text-slate-900">{project.title}</h1>
           <p className="text-xs text-slate-500 font-sans">{project.summary}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap justify-end">
+          <ShareCampaignButton project={project} currentUserId={user?.id} />
           <StatusBadge status={project.status} />
         </div>
       </div>
