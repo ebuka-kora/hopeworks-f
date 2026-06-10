@@ -22,6 +22,6 @@ export const SDG_GOALS: SDG[] = [
   { number: 13, name: "Climate Action", color: "#3f7e44", borderColor: "border-[#3f7e44]", bgColor: "bg-[#3f7e44]/10" },
   { number: 14, name: "Life Below Water", color: "#0a97d9", borderColor: "border-[#0a97d9]", bgColor: "bg-[#0a97d9]/10" },
   { number: 15, name: "Life on Land", color: "#56c02b", borderColor: "border-[#56c02b]", bgColor: "bg-[#56c02b]/10" },
-  { number: 16, name: "Peace, Justice & Strong Inst.", color: "#00689d", borderColor: "border-[#00689d]", bgColor: "bg-[#00689d]/10" },
+  { number: 16, name: "Peace, Justice & Strong Institutions", color: "#00689d", borderColor: "border-[#00689d]", bgColor: "bg-[#00689d]/10" },
   { number: 17, name: "Partnerships for the Goals", color: "#19486a", borderColor: "border-[#19486a]", bgColor: "bg-[#19486a]/10" },
 ];

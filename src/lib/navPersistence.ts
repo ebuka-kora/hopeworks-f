@@ -37,5 +37,11 @@ export function readInitialNav(): SavedNav {
   if (typeof window !== 'undefined' && window.location.hash.includes('type=recovery')) {
     return { view: 'reset_password' };
   }
+  if (typeof window !== 'undefined') {
+    const campaignId = new URLSearchParams(window.location.search).get('campaign');
+    if (campaignId) {
+      return { view: 'project_detail', selectedProjectId: campaignId };
+    }
+  }
   return loadNav() ?? { view: 'home' };
 }

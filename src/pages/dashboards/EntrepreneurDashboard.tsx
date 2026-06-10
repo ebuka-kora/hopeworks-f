@@ -268,16 +268,16 @@ export function EntrepreneurDashboard({ onNavigate }: DashboardProps) {
               progress={progressPct}
               onClick={() => onNavigate('project_detail', camp.id)}
               footer={
-                <div className="flex gap-2 pt-2 border-t border-slate-100" onClick={(e) => e.stopPropagation()}>
-                  <PillButton variant="muted" caps={false} onClick={() => handleExportCSV(camp)} className="flex-1 py-1.5 text-xs">
+                <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100" onClick={(e) => e.stopPropagation()}>
+                  <PillButton variant="muted" caps={false} onClick={() => handleExportCSV(camp)} className="flex-1 py-1.5 text-xs min-w-[4.5rem]">
                     <FileSpreadsheet className="h-3 w-3 text-[#B24724]" />
                     CSV
                   </PillButton>
-                  <PillButton variant="muted" caps={false} onClick={() => handleExportPDF(camp)} className="flex-1 py-1.5 text-xs">
+                  <PillButton variant="muted" caps={false} onClick={() => handleExportPDF(camp)} className="flex-1 py-1.5 text-xs min-w-[4.5rem]">
                     <Award className="h-3 w-3 text-[#B24724]" />
                     PDF
                   </PillButton>
-                  <PillButton variant="brand" caps={false} onClick={() => onNavigate('project_detail', camp.id)} className="flex-1 py-1.5 text-xs">
+                  <PillButton variant="brand" caps={false} onClick={() => onNavigate('project_detail', camp.id)} className="flex-1 py-1.5 text-xs min-w-[4.5rem]">
                     Open
                     <ArrowUpRight className="h-3 w-3" />
                   </PillButton>

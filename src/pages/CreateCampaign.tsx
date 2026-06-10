@@ -7,6 +7,8 @@ import { apiUpload } from '../lib/apiClient';
 import { SDG_GOALS } from '../lib/sdg-data';
 import { Check, ClipboardList, Target, Users, Calendar, ArrowRight, ArrowLeft, ImagePlus, X } from 'lucide-react';
 import { PillButton } from '../components/PillButton';
+import { SectorCategoryInput } from '../components/SectorCategoryInput';
+import { VolunteerDatesPicker } from '../components/VolunteerDatesPicker';
 
 const COVER_PRESETS = [
   { label: 'Plumbing & Pipes', url: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&q=80&w=1200' },
@@ -41,7 +43,7 @@ export function CreateCampaign({ onNavigate }: CreateCampaignProps) {
   const [summary, setSummary] = useState("");
   const [description, setDescription] = useState("");
   const [selectedSdgs, setSelectedSdgs] = useState<number[]>([]);
-  const [category, setCategory] = useState("Water & Sanitation");
+  const [category, setCategory] = useState("");
   const [coverUrl, setCoverUrl] = useState("");
   const [coverFileName, setCoverFileName] = useState("");
   const [uploadingCover, setUploadingCover] = useState(false);
@@ -62,9 +64,9 @@ export function CreateCampaign({ onNavigate }: CreateCampaignProps) {
 
   // Step 3: Volunteering
   const [volunteerCompensation, setVolunteerCompensation] = useState<'unpaid' | 'paid'>('unpaid');
-  const [volunteerSlots, setVolunteerSlots] = useState(4);
+  const [volunteerSlotsInput, setVolunteerSlotsInput] = useState('4');
   const [skillsRaw, setSkillsRaw] = useState("Construction, Heavy Lifting, Plumbing");
-  const [datesRaw, setDatesRaw] = useState("2026-06-15, 2026-06-20");
+  const [volunteerDates, setVolunteerDates] = useState<string[]>(['2026-06-15', '2026-06-20']);
 
   const totalFundingTarget = m1Cost + m2Cost + m3Cost;
 
@@ -128,6 +130,10 @@ export function CreateCampaign({ onNavigate }: CreateCampaignProps) {
         setError("You must select at least one supporting UN SDG Goal indicator to align this project.");
         return;
       }
+      if (!category.trim()) {
+        setError("Please enter or select a campaign sector category.");
+        return;
+      }
       if (!coverUrl.trim()) {
         setError("Upload a cover image or choose a stock image for your campaign.");
         return;
@@ -146,8 +152,13 @@ export function CreateCampaign({ onNavigate }: CreateCampaignProps) {
         setError("Please define at least one required skill set.");
         return;
       }
-      if (!datesRaw.trim()) {
-        setError("Please specify proposed action dates for volunteer recruitment shifts.");
+      const volunteerSlots = parseInt(volunteerSlotsInput, 10);
+      if (!Number.isFinite(volunteerSlots) || volunteerSlots < 1) {
+        setError('Slot limit capacity must be at least 1.');
+        return;
+      }
+      if (volunteerDates.length === 0) {
+        setError('Please select at least one action date on the calendar.');
         return;
       }
     }
@@ -159,7 +170,7 @@ export function CreateCampaign({ onNavigate }: CreateCampaignProps) {
     setLaunching(true);
     try {
       const skillsParsed = skillsRaw.split(',').map(s => s.trim()).filter(Boolean);
-      const datesParsed = datesRaw.split(',').map(s => s.trim()).filter(Boolean);
+      const volunteerSlots = parseInt(volunteerSlotsInput, 10);
 
       const payload = {
         title: title.trim(),
@@ -167,7 +178,7 @@ export function CreateCampaign({ onNavigate }: CreateCampaignProps) {
         description: description.trim(),
         ownerId: user.id,
         ownerName: user.name,
-        category,
+        category: category.trim(),
         sdgs: selectedSdgs,
         fundingTarget: totalFundingTarget,
         coverUrl,
@@ -175,7 +186,7 @@ export function CreateCampaign({ onNavigate }: CreateCampaignProps) {
         volunteerSlots,
         volunteerCompensation,
         volunteerSkills: skillsParsed,
-        volunteerDates: datesParsed,
+        volunteerDates,
         milestones: [
           { id: 'm1', title: m1Title, description: m1Desc, cost: m1Cost, status: 'pending' as const, evidenceUrls: [] },
           { id: 'm2', title: m2Title, description: m2Desc, cost: m2Cost, status: 'pending' as const, evidenceUrls: [] },
@@ -262,19 +273,12 @@ export function CreateCampaign({ onNavigate }: CreateCampaignProps) {
                 />
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <label className="text-[11px] text-slate-500 uppercase tracking-wide">Campaign Sector Category</label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 outline-none rounded-lg font-sans bg-white focus:border-emerald-600"
-                >
-                  <option value="Water & Sanitation">Water & Sanitation</option>
-                  <option value="Solar Energy">Solar Energy</option>
-                  <option value="Education Kits">Education Kits</option>
-                  <option value="Conservation">Conservation</option>
-                  <option value="Healthcare">Healthcare</option>
-                </select>
+                <SectorCategoryInput value={category} onChange={setCategory} />
+                <p className="text-[10px] text-slate-400 font-sans leading-relaxed">
+                  Choose a suggested sector or type your own (e.g. Gamified Learning, Youth Sports).
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -354,7 +358,7 @@ export function CreateCampaign({ onNavigate }: CreateCampaignProps) {
               <div className="space-y-2">
                 <label className="text-[11px] text-slate-500 uppercase tracking-wide block">Align Sustainable Development Goals (SDGs)</label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1 font-sans">
-                  {SDG_GOALS.slice(0, 15).map((goal) => {
+                  {SDG_GOALS.map((goal) => {
                     const isSelected = selectedSdgs.includes(goal.number);
                     return (
                       <button
@@ -518,10 +522,23 @@ export function CreateCampaign({ onNavigate }: CreateCampaignProps) {
                 <div className="space-y-1">
                   <label className="text-[11px] text-slate-500 uppercase tracking-wide">Slot limit capacity</label>
                   <input
-                    type="number"
-                    value={volunteerSlots}
-                    onChange={(e) => setVolunteerSlots(parseInt(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-slate-200 outline-none rounded-lg"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    placeholder="e.g. 8"
+                    value={volunteerSlotsInput}
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      if (next === '' || /^\d+$/.test(next)) {
+                        setVolunteerSlotsInput(next);
+                      }
+                    }}
+                    onBlur={() => {
+                      if (volunteerSlotsInput === '' || parseInt(volunteerSlotsInput, 10) < 1) {
+                        setVolunteerSlotsInput('1');
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-slate-200 outline-none rounded-lg focus:border-[#B24724] focus:ring-2 focus:ring-[#B24724]/15"
                   />
                 </div>
               </div>
@@ -537,15 +554,12 @@ export function CreateCampaign({ onNavigate }: CreateCampaignProps) {
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[11px] text-slate-500 uppercase tracking-wide block">Action Dates proposed (YYYY-MM-DD, comma-separated)</label>
-                <input
-                  type="text"
-                  placeholder="2026-06-15, 2026-06-20"
-                  value={datesRaw}
-                  onChange={(e) => setDatesRaw(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 outline-none rounded-lg"
-                />
+              <div className="space-y-1.5">
+                <label className="text-[11px] text-slate-500 uppercase tracking-wide block">Action dates proposed</label>
+                <VolunteerDatesPicker value={volunteerDates} onChange={setVolunteerDates} />
+                <p className="text-[10px] text-slate-400 font-sans leading-relaxed">
+                  Pick individual shift dates or switch to date range for longer projects.
+                </p>
               </div>
 
             </div>
@@ -581,7 +595,7 @@ export function CreateCampaign({ onNavigate }: CreateCampaignProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <h4 className="font-semibold text-slate-400">RECRUITMENT SHIFTS CAPACITY:</h4>
-                  <p className="font-bold text-slate-800">{volunteerSlots} Slots ({volunteerCompensation})</p>
+                  <p className="font-bold text-slate-800">{volunteerSlotsInput || '0'} Slots ({volunteerCompensation})</p>
                 </div>
                 <div>
                   <h4 className="font-semibold text-slate-400">UN SDG MATRIX ALIGNED:</h4>

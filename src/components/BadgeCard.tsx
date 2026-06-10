@@ -85,7 +85,7 @@ export function BadgeCard({ badge }: BadgeCardProps) {
             className="w-full py-2 text-[11px] font-mono"
           >
             <Download className="h-3.5 w-3.5" />
-            Vow Certificate
+            View certificate
           </PillButton>
         </div>
 
