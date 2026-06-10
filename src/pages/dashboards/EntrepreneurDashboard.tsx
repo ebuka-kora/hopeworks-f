@@ -193,7 +193,7 @@ export function EntrepreneurDashboard({ onNavigate }: DashboardProps) {
 
   // States
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeSegment, setActiveSegment] = useState<'all' | 'active' | 'review'>('all');
+  const [activeSegment, setActiveSegment] = useState<'all' | 'active' | 'review' | 'completed'>('all');
 
   // Search filtered campaigns
   const filteredCampaigns = myCampaigns.filter((camp) => {
@@ -202,6 +202,7 @@ export function EntrepreneurDashboard({ onNavigate }: DashboardProps) {
     
     if (activeSegment === 'active') return matchesSearch && camp.status === 'active';
     if (activeSegment === 'review') return matchesSearch && camp.status === 'pending';
+    if (activeSegment === 'completed') return matchesSearch && camp.status === 'completed';
     return matchesSearch;
   });
 
@@ -229,6 +230,7 @@ export function EntrepreneurDashboard({ onNavigate }: DashboardProps) {
           { id: 'all', label: 'All', count: myCampaigns.length },
           { id: 'active', label: 'Live', count: myCampaigns.filter((c) => c.status === 'active').length },
           { id: 'review', label: 'Waiting', count: myCampaigns.filter((c) => c.status === 'pending').length },
+          { id: 'completed', label: 'Completed', count: myCampaigns.filter((c) => c.status === 'completed').length },
         ]}
       />
 

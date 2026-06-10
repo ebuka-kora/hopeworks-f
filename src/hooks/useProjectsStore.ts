@@ -42,6 +42,19 @@ export function useProjectsStore() {
       await apiFetch(`/api/projects/${projectId}/milestones/${index}/start`, { method: 'POST' });
       await refresh();
     },
+    autoAdvanceMilestones: async (projectId: string) => {
+      const result = await apiFetch<{
+        project: Project;
+        started: boolean;
+        startedIndex?: number;
+        blocked: boolean;
+        blockingIndex?: number;
+        nextIndex?: number;
+        submissionNeededIndex?: number;
+      }>(`/api/projects/${projectId}/milestones/auto-advance`, { method: 'POST' });
+      await refresh();
+      return result;
+    },
     submitMilestoneEvidence: async (projectId: string, index: number, urls: string[], description: string) => {
       await apiFetch(`/api/projects/${projectId}/milestones/${index}/submit`, {
         method: 'POST',
