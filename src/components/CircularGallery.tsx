@@ -5,6 +5,7 @@ import './CircularGallery.css';
 interface CircularGalleryItem {
   image: string;
   text: string;
+  id?: number | string;
 }
 
 interface CircularGalleryProps {
@@ -16,6 +17,7 @@ interface CircularGalleryProps {
   fontUrl?: string;
   scrollSpeed?: number;
   scrollEase?: number;
+  onItemClick?: (id: number | string) => void;
 }
 
 function debounce(func: Function, wait: number) {
@@ -248,6 +250,7 @@ class Media {
   speed = 0;
   isBefore = false;
   isAfter = false;
+  itemId?: number | string;
 
   constructor({
     geometry,
@@ -263,7 +266,8 @@ class Media {
     bend,
     textColor,
     borderRadius = 0,
-    font
+    font,
+    itemId
   }: any) {
     this.geometry = geometry;
     this.gl = gl;
@@ -279,6 +283,7 @@ class Media {
     this.textColor = textColor;
     this.borderRadius = borderRadius;
     this.font = font;
+    this.itemId = itemId;
     this.createShader();
     this.createMesh();
     this.createTitle();
@@ -456,6 +461,8 @@ class App {
   viewport: any;
   isDown = false;
   start = 0;
+  dragDistance = 0;
+  onItemClick?: (id: number | string) => void;
   raf: any;
 
   boundOnResize: any;
@@ -473,11 +480,13 @@ class App {
       borderRadius = 0,
       font = 'bold 30px Figtree',
       scrollSpeed = 2,
-      scrollEase = 0.05
+      scrollEase = 0.05,
+      onItemClick
     } = {} as any
   ) {
     document.documentElement.classList.remove('no-js');
     this.container = container;
+    this.onItemClick = onItemClick;
     this.scrollSpeed = scrollSpeed;
     this.scroll = { ease: scrollEase, current: 0, target: 0, last: 0 };
     this.onCheckDebounce = debounce(this.onCheck.bind(this), 200);
@@ -540,13 +549,39 @@ class App {
         bend,
         textColor,
         borderRadius,
-        font
+        font,
+        itemId: data.id
       });
     });
   }
 
+  hitTest(clientX: number): Media | null {
+    if (!this.medias?.length || !this.gl?.canvas) return null;
+
+    const rect = this.gl.canvas.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const fraction = x / rect.width;
+    const worldX = (fraction - 0.5) * this.viewport.width;
+    const halfWidth = this.medias[0].width * 0.45;
+
+    let closest: Media | null = null;
+    let closestDist = Infinity;
+
+    for (const media of this.medias) {
+      if (media.itemId == null) continue;
+      const dist = Math.abs(media.plane.position.x - worldX);
+      if (dist < halfWidth && dist < closestDist) {
+        closestDist = dist;
+        closest = media;
+      }
+    }
+
+    return closest;
+  }
+
   onTouchDown(e: any) {
     this.isDown = true;
+    this.dragDistance = 0;
     this.scroll.position = this.scroll.current;
     this.start = e.touches ? e.touches[0].clientX : e.clientX;
   }
@@ -554,13 +589,23 @@ class App {
   onTouchMove(e: any) {
     if (!this.isDown) return;
     const x = e.touches ? e.touches[0].clientX : e.clientX;
+    this.dragDistance = Math.max(this.dragDistance, Math.abs(this.start - x));
     const distance = (this.start - x) * (this.scrollSpeed * 0.025);
     this.scroll.target = this.scroll.position + distance;
   }
 
-  onTouchUp() {
+  onTouchUp(e: any) {
+    const wasDragging = this.dragDistance > 12;
     this.isDown = false;
     this.onCheck();
+
+    if (!wasDragging && this.onItemClick && e) {
+      const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+      const media = this.hitTest(clientX);
+      if (media?.itemId != null) {
+        this.onItemClick(media.itemId);
+      }
+    }
   }
 
   onWheel(e: any) {
@@ -648,15 +693,18 @@ export function CircularGallery({
   font = 'bold 30px Figtree',
   fontUrl,
   scrollSpeed = 2,
-  scrollEase = 0.05
+  scrollEase = 0.05,
+  onItemClick
 }: CircularGalleryProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  
+  const onItemClickRef = useRef(onItemClick);
+  onItemClickRef.current = onItemClick;
+
   useEffect(() => {
     if (!containerRef.current) return;
     let app: App | undefined;
     let isMounted = true;
-    
+
     resolveFont(font, fontUrl).then(resolvedFont => {
       if (!isMounted || !containerRef.current) return;
       app = new App(containerRef.current, {
@@ -666,15 +714,21 @@ export function CircularGallery({
         borderRadius,
         font: resolvedFont,
         scrollSpeed,
-        scrollEase
+        scrollEase,
+        onItemClick: (id) => onItemClickRef.current?.(id)
       });
     });
-    
+
     return () => {
       isMounted = false;
       if (app) app.destroy();
     };
   }, [items, bend, textColor, borderRadius, font, fontUrl, scrollSpeed, scrollEase]);
 
-  return <div className="circular-gallery" ref={containerRef} />;
+  return (
+    <div
+      className={`circular-gallery${onItemClick ? ' circular-gallery--clickable' : ''}`}
+      ref={containerRef}
+    />
+  );
 }

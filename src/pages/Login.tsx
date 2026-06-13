@@ -8,6 +8,9 @@ import { Logo } from '../components/Logo';
 import { PillButton } from '../components/PillButton';
 import { PasswordInput } from '../components/PasswordInput';
 import { useLoadingOverlay } from '../context/LoadingOverlayContext';
+import { ResponsiveImage } from '../components/ResponsiveImage';
+import { SDG_GOALS } from '../lib/sdg-data';
+import { COUNTRIES } from '../lib/countries';
 // @ts-ignore
 import boyHospitalSmile from '../assets/images/boy_hospital_smile_1780656337127.png';
 // @ts-ignore
@@ -43,7 +46,7 @@ interface LoginProps {
 type WizardStep = 
   | 'welcome' 
   | 'password' 
-  | 'signup_step1' // target location + category (zip, country, category)
+  | 'signup_step1' // target location + SDG sectors (state, country, sdgs)
   | 'signup_step4' // assign civic roles (entrepreneur, volunteer, donor)
   | 'signup_step5'; // final legal name + email + security password
 
@@ -72,7 +75,7 @@ export function Login({
 
   // Onboarding specific attributes (GoFundMe style)
   const [country, setCountry] = useState("");
-  const [zipCode, setZipCode] = useState("");
+  const [stateRegion, setStateRegion] = useState("");
   const [fundraisingCategories, setFundraisingCategories] = useState<string[]>([]);
   // Status indicators
   const [validationError, setValidationError] = useState("");
@@ -93,14 +96,10 @@ export function Login({
     }
   }, [mode, preselectedRoles]);
 
-  // Categories list (identical to mockup)
-  const categories = [
-    'Animals', 'Business', 'Community', 'Competitions', 'Creative', 
-    'Education', 'Emergencies', 'Environment', 'Events', 'Faith', 
-    'Family', 'Funerals & Memorials', 'Medical', 'Monthly Bills', 
-    'Newlyweds', 'Other', 'Sports', 'Travel', 'Ukraine Relief', 
-    'Volunteer', 'Wishes'
-  ];
+  const sdgSectorLabel = (goalNumber: number) => {
+    const goal = SDG_GOALS.find((g) => g.number === goalNumber);
+    return goal ? `${goal.number}. ${goal.name}` : String(goalNumber);
+  };
 
   const handleSimulatedClick = async (simId: string) => {
     setValidationError("");
@@ -169,7 +168,7 @@ export function Login({
     try {
       const profileExtras = isProjectOwnerSignup
         ? {
-            location: `${zipCode.trim()}, ${country}`,
+            location: `${stateRegion.trim()}, ${country}`,
             fundraisingCategories,
           }
         : undefined;
@@ -187,23 +186,24 @@ export function Login({
       setRoles([]);
       if (role === 'entrepreneur') {
         setCountry('');
-        setZipCode('');
+        setStateRegion('');
         setFundraisingCategories([]);
       }
     } else {
       setRoles([role]);
       if (role !== 'entrepreneur') {
         setCountry('');
-        setZipCode('');
+        setStateRegion('');
         setFundraisingCategories([]);
       }
       setValidationError("");
     }
   };
 
-  const toggleFundraisingCategory = (cat: string) => {
+  const toggleSdgSector = (goalNumber: number) => {
+    const label = sdgSectorLabel(goalNumber);
     setFundraisingCategories((prev) =>
-      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+      prev.includes(label) ? prev.filter((c) => c !== label) : [...prev, label]
     );
     setValidationError("");
   };
@@ -213,12 +213,12 @@ export function Login({
       setValidationError("Please select your country to continue.");
       return;
     }
-    if (!zipCode.trim()) {
-      setValidationError("Please specify your zip code to continue.");
+    if (!stateRegion.trim()) {
+      setValidationError("Please specify your state or region to continue.");
       return;
     }
     if (fundraisingCategories.length === 0) {
-      setValidationError("Please select at least one reason you are fundraising to continue.");
+      setValidationError("Please select at least one SDG sector that aligns with your work.");
       return;
     }
     setValidationError("");
@@ -333,7 +333,7 @@ export function Login({
         <WizardStepMotion
           stepKey={wizardStep}
           direction={wizardDirection}
-          className="flex-grow flex flex-col justify-center max-w-lg w-full mx-auto py-2"
+          className="flex-grow flex flex-col justify-center max-w-lg xl:max-w-xl w-full mx-auto py-2"
         >
           
           {/* STEP: WELCOME INSPIRED BY GFM MOCKUP */}
@@ -535,54 +535,55 @@ export function Login({
                       onChange={(e) => setCountry(e.target.value)}
                       className="w-full p-3 border border-slate-200 outline-none rounded-xl bg-white text-xs font-semibold text-slate-700 cursor-pointer shadow-sm hover:border-slate-300"
                     >
-                      <option value="" disabled>Select Country</option>
-                      <option value="United States">United States</option>
-                      <option value="United Kingdom">United Kingdom</option>
-                      <option value="Canada">Canada</option>
-                      <option value="Nigeria">Nigeria</option>
-                      <option value="Kenya">Kenya</option>
+                      <option value="" disabled>Select country</option>
+                      {COUNTRIES.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-sans text-slate-500 font-bold uppercase tracking-wider block">
-                      Zip code
+                      State / Region
                     </label>
                     <input
                       type="text"
                       required
-                      value={zipCode}
-                      onChange={(e) => setZipCode(e.target.value)}
-                      placeholder="e.g. 99950"
-                      className="w-full p-3 border border-slate-200 outline-none rounded-xl text-xs font-mono font-bold text-slate-700 shadow-sm focus:border-emerald-700"
+                      value={stateRegion}
+                      onChange={(e) => setStateRegion(e.target.value)}
+                      placeholder="e.g. Lagos, California, Ontario"
+                      className="w-full p-3 border border-slate-200 outline-none rounded-xl text-xs font-semibold text-slate-700 shadow-sm focus:border-emerald-700"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-[10px] font-sans text-slate-500 font-bold uppercase tracking-wider block">
-                    What best describes why you're fundraising?
+                    Which UN Sustainable Development Goals align with your work?
                   </label>
                   <p className="text-[10px] text-slate-400 font-sans">
-                    Select all that apply ({fundraisingCategories.length} selected)
+                    Select all sectors that apply ({fundraisingCategories.length} selected)
                   </p>
-                  
-                  {/* CATEGORIES GRID PILLS */}
-                  <div className="flex flex-wrap gap-2 pt-1 max-h-[200px] overflow-y-auto p-1.5 bg-slate-50 border border-slate-100 rounded-xl">
-                    {categories.map((cat) => {
-                      const isSelected = fundraisingCategories.includes(cat);
+
+                  <div className="flex flex-wrap gap-2 pt-1 max-h-[240px] overflow-y-auto p-2 bg-slate-50 border border-slate-100 rounded-xl">
+                    {SDG_GOALS.map((goal) => {
+                      const label = sdgSectorLabel(goal.number);
+                      const isSelected = fundraisingCategories.includes(label);
                       return (
                         <button
-                          key={cat}
+                          key={goal.number}
                           type="button"
-                          onClick={() => toggleFundraisingCategory(cat)}
-                          className={`px-3 py-1.5 rounded-full text-[10px] font-sans font-bold transition-all border cursor-pointer ${
-                            isSelected 
-                              ? 'bg-emerald-50 border-emerald-500 text-emerald-800' 
-                              : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                          onClick={() => toggleSdgSector(goal.number)}
+                          className={`px-3 py-1.5 rounded-lg text-[10px] font-sans font-bold transition-all border cursor-pointer shrink-0 ${
+                            isSelected
+                              ? 'border-transparent text-white shadow-xs'
+                              : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
                           }`}
+                          style={isSelected ? { backgroundColor: goal.color } : undefined}
                         >
-                          {cat}
+                          {label}
                         </button>
                       );
                     })}
@@ -874,9 +875,10 @@ export function Login({
         
         {/* Photo layer utilizing optimal fit */}
         <div className="absolute inset-0 z-0">
-          <img
+          <ResponsiveImage
             src={wizardStep.startsWith('signup') ? girlHopeSprout : boyHospitalSmile}
             alt={wizardStep.startsWith('signup') ? "Smiling girl in sunlit room holding green hope sprout" : "Smiling boy in hospital with head bandage researching cure"}
+            sizes="50vw"
             referrerPolicy="no-referrer"
             className="w-full h-full object-cover object-center brightness-110 opacity-90 transition-opacity duration-700"
           />

@@ -28,7 +28,7 @@ export function Footer({ onNavigate }: FooterProps) {
 
   return (
     <footer className="bg-[#050C16] text-slate-400 border-t border-slate-900 pt-16 pb-0 select-none overflow-hidden relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+      <div className="page-container space-y-12">
         
         {/* Row 1: single column on mobile, inline with bullets on sm+ */}
         <Reveal direction="up" className="text-xs md:text-sm font-sans text-slate-400">

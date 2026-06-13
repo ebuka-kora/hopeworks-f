@@ -9,6 +9,14 @@
   cursor: grabbing;
 }
 
+.circular-gallery--clickable {
+  cursor: grab;
+}
+
+.circular-gallery--clickable:active {
+  cursor: grabbing;
+}
+
 .circular-gallery canvas {
   margin-bottom: 30px;
   margin-right: 40px;

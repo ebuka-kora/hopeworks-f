@@ -64,6 +64,7 @@ interface DashboardShellProps {
   initialPanel?: DashboardPanel;
   initialActiveTab?: RoleTab;
   initialProjectId?: string;
+  initialExploreSdg?: number | null;
   initialProjectAction?: ProjectDetailAction | null;
   onProjectActionConsumed?: () => void;
   onDashboardStateChange?: (state: {
@@ -117,6 +118,7 @@ export function DashboardShell({
   initialPanel,
   initialActiveTab,
   initialProjectId,
+  initialExploreSdg,
   initialProjectAction,
   onProjectActionConsumed,
   onDashboardStateChange,
@@ -383,7 +385,7 @@ export function DashboardShell({
 
     switch (panel) {
       case 'explore':
-        return <Projects onNavigate={handleDashboardNavigate} />;
+        return <Projects onNavigate={handleDashboardNavigate} initialSdg={initialExploreSdg} />;
       case 'project_detail':
         return (
           <ProjectDetail

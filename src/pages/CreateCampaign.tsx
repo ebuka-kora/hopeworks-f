@@ -8,7 +8,7 @@ import { SDG_GOALS } from '../lib/sdg-data';
 import { Check, ClipboardList, Target, Users, Calendar, ArrowRight, ArrowLeft, ImagePlus, X } from 'lucide-react';
 import { PillButton } from '../components/PillButton';
 import { SectorCategoryInput } from '../components/SectorCategoryInput';
-import { VolunteerDatesPicker } from '../components/VolunteerDatesPicker';
+import { ResponsiveImage } from '../components/ResponsiveImage';
 
 const COVER_PRESETS = [
   { label: 'Plumbing & Pipes', url: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&q=80&w=1200' },
@@ -86,7 +86,15 @@ export function CreateCampaign({ onNavigate }: CreateCampaignProps) {
     }
 
     setUploadingCover(true);
+    const objectUrl = URL.createObjectURL(file);
     try {
+      const dimensions = await new Promise<{ width: number; height: number }>((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+        img.onerror = () => reject(new Error('Could not read image dimensions.'));
+        img.src = objectUrl;
+      });
+
       const reader = new FileReader();
       const base64 = await new Promise<string>((resolve, reject) => {
         reader.onload = () => resolve(reader.result as string);
@@ -96,9 +104,13 @@ export function CreateCampaign({ onNavigate }: CreateCampaignProps) {
       const { url } = await apiUpload('covers', file.name, base64, file.type);
       setCoverUrl(url);
       setCoverFileName(file.name);
+      if (dimensions.width < 1280 || dimensions.height < 720) {
+        setCoverError('Tip: For sharp previews on large screens, use a cover at least 1280×720.');
+      }
     } catch (err: unknown) {
       setCoverError((err as Error).message || 'Failed to upload cover image.');
     } finally {
+      URL.revokeObjectURL(objectUrl);
       setUploadingCover(false);
       if (coverFileRef.current) coverFileRef.current.value = '';
     }
@@ -205,7 +217,7 @@ export function CreateCampaign({ onNavigate }: CreateCampaignProps) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 select-none relative">
+    <div className="page-container max-w-4xl py-10 select-none relative">
       
       {/* Visual top tracker bar */}
       <div className="grid grid-cols-4 gap-2 mb-10 select-none text-center font-mono text-[10px] text-slate-400">
@@ -286,9 +298,11 @@ export function CreateCampaign({ onNavigate }: CreateCampaignProps) {
                 <div className="rounded-xl border border-slate-200 overflow-hidden bg-slate-50">
                   {coverUrl ? (
                     <div className="relative aspect-[21/9] bg-slate-100">
-                      <img
+                      <ResponsiveImage
                         src={coverUrl}
                         alt="Campaign cover preview"
+                        sizes="(min-width: 896px) 896px, 100vw"
+                        aspectRatio="21/9"
                         referrerPolicy="no-referrer"
                         className="w-full h-full object-cover"
                       />
