@@ -58,6 +58,7 @@ function AppContent() {
   const [activeDesk, setActiveDesk] = useState<string | undefined>(initialNav.activeDesk);
   const [registerDefaults, setRegisterDefaults] = useState<RegisterDefaults | null>(null);
   const [projectDetailAction, setProjectDetailAction] = useState<ProjectDetailAction | null>(null);
+  const [exploreSdgFilter, setExploreSdgFilter] = useState<number | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   const WORKSPACE_VIEWS = new Set([
@@ -174,6 +175,11 @@ function AppContent() {
   );
 
   const handleNavigate = (newView: string, id?: string) => {
+    if (newView === 'explore') {
+      const sdgNum = id && /^\d+$/.test(id) ? parseInt(id, 10) : null;
+      setExploreSdgFilter(sdgNum && sdgNum >= 1 && sdgNum <= 17 ? sdgNum : null);
+    }
+
     if (newView === 'create_campaign') {
       if (!user) {
         toast.info('Sign up as a Project Owner to create a campaign.');
@@ -320,7 +326,9 @@ function AppContent() {
             transition={reducedMotion ? { duration: 0 } : springBouncy}
           >
             {view === 'home' && <Index onNavigate={handleNavigate} />}
-            {view === 'explore' && <Projects onNavigate={handleNavigate} />}
+            {view === 'explore' && (
+              <Projects onNavigate={handleNavigate} initialSdg={exploreSdgFilter} />
+            )}
             {view === 'project_detail' && (
               <ProjectDetail
                 projectId={selectedProjectId}
@@ -348,6 +356,7 @@ function AppContent() {
                       | 'availability'
                       | undefined) ?? 'desk'
                   }
+                  initialExploreSdg={exploreSdgFilter}
                   initialActiveTab={activeDesk as DeskTab | undefined}
                   initialProjectId={selectedProjectId || undefined}
                   initialProjectAction={projectDetailAction}

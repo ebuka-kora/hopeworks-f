@@ -12,6 +12,7 @@ import { PillButton } from '../components/PillButton';
 
 interface ProjectsProps {
   onNavigate: (view: string, id?: string) => void;
+  initialSdg?: number | null;
 }
 
 const LIVE_ACTIVITIES = [
@@ -24,14 +25,20 @@ const LIVE_ACTIVITIES = [
   "Sweat Equity Logged: Volunteer logged 4.5h hours of certified offshore coral prop action."
 ];
 
-export function Projects({ onNavigate }: ProjectsProps) {
+export function Projects({ onNavigate, initialSdg = null }: ProjectsProps) {
   const { projects, loading: storeLoading } = useProjectsStore();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSdg, setSelectedSdg] = useState<number | null>(null);
+  const [selectedSdg, setSelectedSdg] = useState<number | null>(initialSdg);
   const [compensationFilter, setCompensationFilter] = useState<'all' | 'paid' | 'unpaid'>('all');
   const [sortOption, setSortOption] = useState<'newest' | 'funding_raised' | 'funding_target'>('newest');
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (initialSdg != null && initialSdg >= 1 && initialSdg <= 17) {
+      setSelectedSdg(initialSdg);
+    }
+  }, [initialSdg]);
 
   // Trigger brief shimmer loading state when filters change for realistic perceived performance
   useEffect(() => {
@@ -94,12 +101,12 @@ export function Projects({ onNavigate }: ProjectsProps) {
     });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+    <div className="page-container py-10 space-y-6">
       
       <Reveal direction="up" className="space-y-2.5 select-none border-b border-slate-200/50 pb-6">
         <label className="text-[10px] font-sans font-bold text-emerald-600 uppercase tracking-[0.25em] leading-none">Civic Directory</label>
-        <h1 className="text-3xl sm:text-4xl font-serif font-normal text-slate-900 tracking-tight">Explore SDG-Aligned Campaigns</h1>
-        <p className="text-xs text-slate-500 max-w-xl leading-relaxed">
+        <h1 className="text-3xl sm:text-4xl xl:text-5xl font-serif font-normal text-slate-900 tracking-tight">Explore SDG-Aligned Campaigns</h1>
+        <p className="text-sm sm:text-base text-slate-500 max-w-xl leading-relaxed">
           Securely fund local infrastructure or apply to volunteer your skills directly. Use filters below to target Sustainable Development Goals.
         </p>
         <div className="flex items-center gap-4 text-[10px] text-slate-400 font-mono">
@@ -246,7 +253,7 @@ export function Projects({ onNavigate }: ProjectsProps) {
           <ProjectSkeleton count={6} />
         ) : (
           <>
-            <StaggerChildren className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" stagger={0.08}>
+            <StaggerChildren className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6" stagger={0.08}>
               {filteredProjects.map((p) => (
                 <ProjectCard
                   key={p.id}

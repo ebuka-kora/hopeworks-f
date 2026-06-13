@@ -149,7 +149,7 @@ export function SiteHeader({
       <header
         className={`${positionClass} z-50 w-full bg-[#FAF9F6]/95 backdrop-blur-md border-b border-slate-200/40 select-none`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-[4.5rem] flex items-center justify-between gap-3">
+        <div className="page-container h-16 sm:h-[4.5rem] xl:h-[5rem] flex items-center justify-between gap-3 xl:gap-6">
           <button
             type="button"
             onClick={() => navigate('home')}

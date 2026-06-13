@@ -16,6 +16,7 @@ import { ProjectSkeleton } from '../components/ProjectSkeleton';
 import { scaleIn, springBouncy } from '../lib/motion';
 import { PillButton } from '../components/PillButton';
 import { ShareCampaignButton } from '../components/ShareCampaignButton';
+import { ResponsiveImage } from '../components/ResponsiveImage';
 import { getActionDeniedMessage, userCanPerformAction } from '../lib/roleAccess';
 
 interface ProjectDetailProps {
@@ -66,7 +67,7 @@ export function ProjectDetail({
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="page-container py-10">
         <ProjectSkeleton count={1} />
       </div>
     );
@@ -74,7 +75,7 @@ export function ProjectDetail({
 
   if (!project) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-20 text-center select-none font-mono">
+      <div className="page-container py-20 text-center select-none font-mono">
         <h2 className="text-xl font-serif font-bold text-slate-800">Initiative Campaign Not Found</h2>
         <p className="text-xs text-slate-400 mt-2">Target campaign identifier is invalid or deleted index.</p>
         <PillButton variant="success" caps={false} onClick={() => onNavigate('explore')} className="mt-4 px-4 py-2 text-xs">
@@ -134,7 +135,7 @@ export function ProjectDetail({
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10 relative">
+    <div className="page-container py-10 space-y-10 relative">
       
       {/* Toast status message */}
       <AnimatePresence>
@@ -161,7 +162,7 @@ export function ProjectDetail({
             <span>/</span>
             <span className="text-slate-600 truncate max-w-[150px]">{project.title}</span>
           </div>
-          <h1 className="font-serif font-semibold text-2xl sm:text-3xl tracking-tight text-slate-900">{project.title}</h1>
+          <h1 className="font-serif font-semibold text-2xl sm:text-3xl xl:text-4xl 2xl:text-5xl tracking-tight text-slate-900">{project.title}</h1>
           <p className="text-xs text-slate-500 font-sans">{project.summary}</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end">
@@ -189,9 +190,11 @@ export function ProjectDetail({
             transition={springBouncy}
             className="rounded-2xl overflow-hidden border border-slate-100 shadow-md aspect-[16/9] relative select-none"
           >
-            <img
-              src={project.coverUrl || "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&q=80&w=1200"}
+            <ResponsiveImage
+              src={project.coverUrl || "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&q=80&w=1920"}
               alt={project.title}
+              sizes="(min-width: 1024px) 853px, 100vw"
+              aspectRatio="16/9"
               referrerPolicy="no-referrer"
               className="object-cover w-full h-full"
             />

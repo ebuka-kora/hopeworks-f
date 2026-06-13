@@ -16,7 +16,7 @@ export function PersonalizedHomeBand({ onNavigate }: PersonalizedHomeBandProps) 
   const roles = user.roles || [];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+    <div className="page-container mt-6">
       <div className="border border-slate-200/60 bg-[#FAF9F6]/80 backdrop-blur-md rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 shadow-sm">
         <div className="flex items-center gap-4">
           <div className="h-12 w-12 rounded-full overflow-hidden bg-[#B24724]/10 text-[#B24724] flex items-center justify-center font-serif text-lg font-bold border border-slate-200">

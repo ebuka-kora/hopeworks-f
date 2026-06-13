@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { gsap } from 'gsap';
 import { SiteHeader } from '../components/SiteHeader';
 import { useProjectsStore } from '../hooks/useProjectsStore';
 import { useDonationsStore } from '../hooks/useDonationsStore';
 import { useApplicationsStore } from '../hooks/useApplicationsStore';
 import { ProjectCard } from '../components/ProjectCard';
+import { ResponsiveImage } from '../components/ResponsiveImage';
 import { SDGBadge } from '../components/SDGBadge';
 import { SDG_GOALS } from '../lib/sdg-data';
 import { CircularGallery } from '../components/CircularGallery';
@@ -25,32 +26,26 @@ import {
   defaultViewport,
 } from '../lib/motion';
 // @ts-ignore
-import regeneratedImage from '../assets/images/regenerated_image_1780915883348.png';
-// @ts-ignore
-import sdgDarkBgImage from '../assets/images/sdg_dark_bg_1780919495584.png';
-// @ts-ignore
-import rolesDarkBgImage from '../assets/images/roles_dark_bg_1780920135502.png';
-// @ts-ignore
 import communityAboutImage from '../assets/images/community_about_image_1780924952669.png';
 
 const SDG_UNSPLASH_IMAGES: { [key: number]: string } = {
-  1: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&q=80&w=600",
-  2: "https://images.unsplash.com/photo-1595855759920-86582396756a?auto=format&fit=crop&q=80&w=600",
-  3: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&q=80&w=600",
-  4: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?auto=format&fit=crop&q=80&w=600",
-  5: "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?auto=format&fit=crop&q=80&w=600",
-  6: "https://images.unsplash.com/photo-1518081461904-9d8f136351c2?auto=format&fit=crop&q=80&w=600",
-  7: "https://images.unsplash.com/photo-1466611653911-95081537e5b7?auto=format&fit=crop&q=80&w=600",
-  8: "https://images.unsplash.com/photo-1600132806370-bf17e65e942f?auto=format&fit=crop&q=80&w=600",
-  9: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=600",
-  10: "https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?auto=format&fit=crop&q=80&w=600",
-  11: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&q=80&w=600",
-  12: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=600",
-  13: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80&w=600",
-  14: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&q=80&w=600",
-  15: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=600",
-  16: "https://images.unsplash.com/photo-1447069387593-a5de0862481e?auto=format&fit=crop&q=80&w=600",
-  17: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=600"
+  1: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&q=90&w=1920",
+  2: "https://images.unsplash.com/photo-1595855759920-86582396756a?auto=format&fit=crop&q=90&w=1920",
+  3: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&q=90&w=1920",
+  4: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?auto=format&fit=crop&q=90&w=1920",
+  5: "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?auto=format&fit=crop&q=90&w=1920",
+  6: "https://images.unsplash.com/photo-1518081461904-9d8f136351c2?auto=format&fit=crop&q=90&w=1920",
+  7: "https://images.unsplash.com/photo-1466611653911-95081537e5b7?auto=format&fit=crop&q=90&w=1920",
+  8: "https://images.unsplash.com/photo-1600132806370-bf17e65e942f?auto=format&fit=crop&q=90&w=1920",
+  9: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=90&w=1920",
+  10: "https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?auto=format&fit=crop&q=90&w=1920",
+  11: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&q=90&w=1920",
+  12: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=90&w=1920",
+  13: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=90&w=1920",
+  14: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&q=90&w=1920",
+  15: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=90&w=1920",
+  16: "https://images.unsplash.com/photo-1447069387593-a5de0862481e?auto=format&fit=crop&q=90&w=1920",
+  17: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=90&w=1920"
 };
 
 const PLATFORM_ROLES = [
@@ -186,7 +181,24 @@ interface IndexProps {
   onNavigate: (view: string, id?: string) => void;
 }
 
+function sdgMatrixLabelFont(width: number): string {
+  if (width >= 1536) return "bold 28px 'Uncut Sans', sans-serif";
+  if (width >= 1024) return "bold 24px 'Uncut Sans', sans-serif";
+  if (width >= 640) return "bold 22px 'Uncut Sans', sans-serif";
+  return "bold 20px 'Uncut Sans', sans-serif";
+}
+
 export function Index({ onNavigate }: IndexProps) {
+  const [sdgGalleryFont, setSdgGalleryFont] = useState(() =>
+    typeof window !== 'undefined' ? sdgMatrixLabelFont(window.innerWidth) : "bold 24px 'Uncut Sans', sans-serif"
+  );
+
+  useEffect(() => {
+    const updateFont = () => setSdgGalleryFont(sdgMatrixLabelFont(window.innerWidth));
+    updateFont();
+    window.addEventListener('resize', updateFont);
+    return () => window.removeEventListener('resize', updateFont);
+  }, []);
   const { projects } = useProjectsStore();
   const { donations } = useDonationsStore();
   const { applications } = useApplicationsStore();
@@ -214,7 +226,7 @@ export function Index({ onNavigate }: IndexProps) {
   const handleCardHoverEnter = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.currentTarget.querySelector('.gsap-hover-image');
     if (target) {
-      gsap.to(target, { scale: 1.05, duration: 0.5, ease: 'power2.out' });
+      gsap.to(target, { scale: 1.02, duration: 0.5, ease: 'power2.out' });
     }
   };
 
@@ -265,8 +277,10 @@ export function Index({ onNavigate }: IndexProps) {
     return count + p.milestones.filter(m => m.status === 'approved').length;
   }, 0);
 
-  const activeProjects = projects.filter(p => p.status === 'active');
-  const featured = activeProjects.slice(0, 3);
+  const publicProjects = projects.filter(
+    (p) => p.status === 'active' || p.status === 'completed'
+  );
+  const featured = publicProjects.slice(0, 4);
 
   // Combine live activity stream: recent donations and applications
   const timelineItems = [
@@ -300,8 +314,8 @@ export function Index({ onNavigate }: IndexProps) {
 
       <div className="overflow-x-clip pt-16 sm:pt-[4.5rem]">
       {/* 1. HERO SECTION & VISUAL ENTRY */}
-      <section className="relative px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 pb-12 sm:pb-16 select-none max-w-7xl mx-auto">
-        <div className="max-w-4xl mx-auto text-center space-y-5 sm:space-y-6">
+      <section className="relative page-container pt-8 sm:pt-10 pb-6 sm:pb-8 select-none">
+        <div className="max-w-6xl xl:max-w-7xl mx-auto text-center space-y-5 sm:space-y-6">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -316,18 +330,19 @@ export function Index({ onNavigate }: IndexProps) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-[1.75rem] leading-[1.12] sm:text-5xl md:text-6xl lg:text-7xl font-serif font-normal text-[#0f0e0e] tracking-tight -mt-1 sm:-mt-2 px-1"
+            className="hero-display font-serif font-normal text-[#0f0e0e] tracking-tight -mt-1 sm:-mt-2 px-1"
           >
             <span className="block">Fund genuine impact.</span>
-            <span className="block text-[#B24724] my-2 sm:my-3 overflow-hidden relative h-[1.15em]">
+            <span className="hero-rotate-line text-[#B24724] my-2 sm:my-3">
               <RotatingText
                 texts={['Audit the evidence.', 'Trace every dollar.', 'Certify the work.', 'Build civic trust.']}
-                mainClassName="text-[#B24724] italic font-normal"
+                splitBy="words"
+                mainClassName="text-[#B24724] italic font-normal justify-center"
                 staggerFrom="first"
                 initial={{ y: "100%", opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: "-120%", opacity: 0 }}
-                staggerDuration={0.035}
+                staggerDuration={0.04}
                 splitLevelClassName=""
                 transition={{ type: "spring", damping: 30, stiffness: 280 }}
                 rotationInterval={3800}
@@ -340,7 +355,7 @@ export function Index({ onNavigate }: IndexProps) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="max-w-2xl mx-auto text-slate-500 font-sans text-xs sm:text-sm leading-relaxed tracking-wide"
+            className="max-w-3xl mx-auto text-slate-500 font-sans text-base sm:text-lg leading-relaxed tracking-wide"
           >
             HopeWorks secures complete trust across boundaries. Pledged capital rests locked in an auditable escrow ledger. Appointed Product Managers verify physical proofs on the ground before any milestone funds disburse.
           </motion.p>
@@ -380,26 +395,82 @@ export function Index({ onNavigate }: IndexProps) {
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ ...springBouncy, delay: 0.4 }}
-          className="max-w-7xl mx-auto mt-12 sm:mt-20 md:mt-24 rounded-xl sm:rounded-2xl overflow-hidden border border-slate-100 shadow-lg relative aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/9]"
+          className="w-full mt-8 sm:mt-10 rounded-xl sm:rounded-2xl overflow-hidden border border-slate-100 shadow-lg relative aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/9]"
         >
-          <motion.img
-            style={{ y: heroImageY }}
-            src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&q=80&w=1920"
-            alt="Crowd with HopeWorks goals"
-            referrerPolicy="no-referrer"
-            className="object-cover w-full h-[110%] object-center opacity-90"
-          />
+          <motion.div style={{ y: heroImageY }} className="absolute inset-0 scale-[1.03]">
+            <ResponsiveImage
+              src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&q=90&w=3840"
+              alt="Crowd with HopeWorks goals"
+              sizes="(min-width: 1536px) 1400px, (min-width: 1024px) 92vw, 100vw"
+              aspectRatio="21/9"
+              priority
+              referrerPolicy="no-referrer"
+              className="object-cover w-full h-full object-center"
+            />
+          </motion.div>
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent" />
         </motion.div>
       </section>
 
+      {/* ABOUT US — who we are for first-time visitors */}
+      <section className="page-container my-10 sm:my-14">
+        <div className="bg-slate-950 rounded-3xl p-8 sm:p-12 md:p-16 border border-slate-900 shadow-2xl relative overflow-hidden">
+          <div className="absolute inset-0 z-0 select-none pointer-events-none opacity-40">
+            <ResponsiveImage
+              src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=90&w=2560"
+              alt="Luxury abstract dark backdrop"
+              sizes="100vw"
+              aspectRatio="16/9"
+              referrerPolicy="no-referrer"
+              className="object-cover w-full h-full object-center"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/95 to-slate-950/60" />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center relative z-10">
+            <Reveal direction="left" className="lg:col-span-7 space-y-6 md:space-y-8 text-left">
+              <div>
+                <span className="inline-block bg-amber-500/10 text-amber-400 border border-amber-500/20 px-3.5 py-1.5 rounded-[4px] font-sans font-black text-[11px] uppercase tracking-wider select-none">
+                  Verified Trust & Escrow Guarantee
+                </span>
+              </div>
+
+              <h2 className="text-fluid-heading sm:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-serif font-black text-white tracking-tight leading-[1.1] max-w-xl">
+                HopeWorks is a trusted leader in online fundraising.
+              </h2>
+
+              <p className="text-sm sm:text-base text-slate-300 leading-relaxed font-sans font-light max-w-xl">
+                Our transparent, <span className="text-amber-300 font-semibold">milestone-locked escrow protocol</span> guards every donation. Funds are only disbursed when real-world evidence is audited and verified, ensuring your generosity transforms communities with <span className="text-amber-300 font-semibold">absolute integrity</span>.
+              </p>
+            </Reveal>
+
+            <Reveal direction="scale" className="lg:col-span-5 flex justify-center">
+              <div className="relative w-full max-w-md aspect-square lg:aspect-[4/5] rounded-[2rem] overflow-hidden shadow-2xl border border-white/10 group">
+                <ResponsiveImage
+                  src={communityAboutImage}
+                  alt="Proud volunteers delivering drinking water to citizens"
+                  sizes="(min-width: 1024px) 28rem, 100vw"
+                  aspectRatio="4/5"
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover rounded-[2rem] transform group-hover:scale-[1.03] transition-transform duration-700 ease-out"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
+              </div>
+            </Reveal>
+          </div>
+
+          <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-amber-500/5 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full bg-amber-500/5 blur-3xl pointer-events-none" />
+        </div>
+      </section>
+
       {/* 2. DYNAMIC BROADCAST STATISTICS WITH LIVE LEDGER */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 select-none my-24 sm:my-32 space-y-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+      <section className="page-container select-none my-10 sm:my-14 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
           <div className="lg:col-span-2 space-y-6">
             <Reveal direction="up" className="space-y-1.5">
               <span className="text-[10px] uppercase font-mono tracking-widest font-bold text-[#B24724]">Core Ledger Diagnostics</span>
-              <h3 className="text-2xl sm:text-3xl font-serif font-normal text-slate-950 tracking-tight">Active Platform Aggregate Ledger</h3>
+              <h3 className="text-2xl sm:text-3xl xl:text-4xl font-serif font-normal text-slate-950 tracking-tight">Active Platform Aggregate Ledger</h3>
             </Reveal>
             <BigNumbers />
           </div>
@@ -410,12 +481,14 @@ export function Index({ onNavigate }: IndexProps) {
       </section>
 
       {/* OUR COOPERATIVE ROLES MATRIX SECTION */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 select-none my-16 sm:my-24 lg:my-32">
+      <section className="page-container select-none my-12 sm:my-16 lg:my-20">
         <div className="relative overflow-hidden bg-slate-950 rounded-2xl sm:rounded-3xl border border-slate-900 shadow-2xl">
           <div className="absolute inset-0 z-0 pointer-events-none opacity-40">
-            <img
-              src={rolesDarkBgImage}
+            <ResponsiveImage
+              src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=90&w=2560"
               alt=""
+              sizes="100vw"
+              aspectRatio="16/9"
               referrerPolicy="no-referrer"
               className="object-cover w-full h-full object-center"
             />
@@ -513,12 +586,12 @@ export function Index({ onNavigate }: IndexProps) {
 
 
       {/* PLATFORM TRUST & TRANSPARENCY PRINCIPLES */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 select-none my-24">
+      <section className="page-container select-none my-12 sm:my-16">
         <TrustMark onNavigate={onNavigate} />
       </section>
 
       {/* 2.5 THE ESCROW & PROOF PIPELINE IN PICTURES */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 select-none my-28 sm:my-36">
+      <section className="page-container space-y-8 sm:space-y-10 select-none my-14 sm:my-20 lg:my-24">
         <Reveal direction="bouncy" className="text-center space-y-1.5 max-w-2xl mx-auto">
           <label className="text-[10px] font-sans font-bold text-emerald-600 uppercase tracking-[0.25em]">Audited Workflow</label>
           <h2 className="text-2xl sm:text-3xl font-serif font-normal text-slate-900 tracking-tight">The Three Pillars of Securing Local Hope</h2>
@@ -531,12 +604,14 @@ export function Index({ onNavigate }: IndexProps) {
           <motion.div 
             onMouseEnter={handleCardHoverEnter}
             onMouseLeave={handleCardHoverLeave}
-            className="relative group rounded-2xl overflow-hidden border border-slate-200/40 bg-white h-80 flex flex-col justify-end p-6 transition-all shadow-xs hover:shadow-lg"
+            className="relative group rounded-2xl overflow-hidden border border-slate-200/40 bg-white h-80 xl:h-96 flex flex-col justify-end p-6 transition-all shadow-xs hover:shadow-lg"
           >
             <div className="absolute inset-0 z-0 overflow-hidden">
-              <img
-                src="https://images.unsplash.com/photo-1579621970795-87facc2f976d?auto=format&fit=crop&q=80&w=600"
+              <ResponsiveImage
+                src="https://images.unsplash.com/photo-1579621970795-87facc2f976d?auto=format&fit=crop&q=90&w=1920"
                 alt="Locked escrow capital mobilization"
+                sizes="(min-width: 1024px) 33vw, 100vw"
+                aspectRatio="4/3"
                 referrerPolicy="no-referrer"
                 className="object-cover w-full h-full object-center gsap-hover-image"
               />
@@ -561,12 +636,14 @@ export function Index({ onNavigate }: IndexProps) {
           <motion.div 
             onMouseEnter={handleCardHoverEnter}
             onMouseLeave={handleCardHoverLeave}
-            className="relative group rounded-2xl overflow-hidden border border-slate-200/40 bg-white h-80 flex flex-col justify-end p-6 transition-all shadow-xs hover:shadow-lg"
+            className="relative group rounded-2xl overflow-hidden border border-slate-200/40 bg-white h-80 xl:h-96 flex flex-col justify-end p-6 transition-all shadow-xs hover:shadow-lg"
           >
             <div className="absolute inset-0 z-0 overflow-hidden">
-              <img
-                src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=600"
+              <ResponsiveImage
+                src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=90&w=1920"
                 alt="Active community field work"
+                sizes="(min-width: 1024px) 33vw, 100vw"
+                aspectRatio="4/3"
                 referrerPolicy="no-referrer"
                 className="object-cover w-full h-full object-center gsap-hover-image"
               />
@@ -591,12 +668,14 @@ export function Index({ onNavigate }: IndexProps) {
           <motion.div 
             onMouseEnter={handleCardHoverEnter}
             onMouseLeave={handleCardHoverLeave}
-            className="relative group rounded-2xl overflow-hidden border border-slate-200/40 bg-white h-80 flex flex-col justify-end p-6 transition-all shadow-xs hover:shadow-lg"
+            className="relative group rounded-2xl overflow-hidden border border-slate-200/40 bg-white h-80 xl:h-96 flex flex-col justify-end p-6 transition-all shadow-xs hover:shadow-lg"
           >
             <div className="absolute inset-0 z-0 overflow-hidden">
-              <img
-                src={regeneratedImage}
+              <ResponsiveImage
+                src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=90&w=1920"
                 alt="Independent engineering field audit"
+                sizes="(min-width: 1024px) 33vw, 100vw"
+                aspectRatio="4/3"
                 referrerPolicy="no-referrer"
                 className="object-cover w-full h-full object-center gsap-hover-image"
               />
@@ -621,13 +700,15 @@ export function Index({ onNavigate }: IndexProps) {
       </section>
 
       {/* 3. EXPLORE BY SDG TARGETS (Beautiful Circular 3D Gallery) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-28 sm:my-36">
+      <section className="page-container my-14 sm:my-20 lg:my-24">
         <div className="relative overflow-hidden bg-slate-950 p-8 sm:p-12 md:p-16 rounded-3xl border border-slate-900 shadow-2xl">
           {/* Background dark image */}
           <div className="absolute inset-0 z-0 select-none pointer-events-none opacity-40">
-            <img
-              src={sdgDarkBgImage}
+            <ResponsiveImage
+              src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=90&w=2560"
               alt="Dark structural backdrop"
+              sizes="100vw"
+              aspectRatio="16/9"
               referrerPolicy="no-referrer"
               className="object-cover w-full h-full object-center"
             />
@@ -637,9 +718,9 @@ export function Index({ onNavigate }: IndexProps) {
           <div className="relative z-10 space-y-10">
             <Reveal direction="up" className="flex flex-col sm:flex-row justify-between items-end gap-4 border-b border-white/10 pb-5">
               <div className="text-center sm:text-left space-y-1.5">
-                <label className="text-[10px] font-sans font-bold text-emerald-400 uppercase tracking-[0.25em]">UN Alignment Matrix</label>
-                <h2 className="text-2xl sm:text-3xl font-serif font-normal text-white tracking-tight">SDG Campaigns Mapping Matrix</h2>
-                <p className="text-xs text-slate-400 max-w-lg leading-relaxed">Each HopeWorks campaign aligns with the 17 United Nations goals to focus civic energy.</p>
+                <label className="text-xs sm:text-sm font-sans font-bold text-emerald-400 uppercase tracking-[0.2em]">UN Alignment Matrix</label>
+                <h2 className="text-2xl sm:text-3xl xl:text-4xl font-serif font-normal text-white tracking-tight">SDG Campaigns Mapping Matrix</h2>
+                <p className="text-sm sm:text-base text-slate-300 max-w-lg leading-relaxed">Each HopeWorks campaign aligns with the 17 United Nations goals to focus civic energy.</p>
               </div>
             </Reveal>
 
@@ -648,7 +729,7 @@ export function Index({ onNavigate }: IndexProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={defaultViewport}
               transition={springBouncy}
-              className="relative h-[320px] sm:h-[400px] md:h-[480px] w-full rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl border border-slate-900 bg-linear-to-b from-[#020617] via-[#090d1f] to-[#020617] group"
+              className="relative h-[320px] sm:h-[400px] md:h-[480px] xl:h-[560px] 2xl:h-[640px] w-full rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl border border-slate-900 bg-linear-to-b from-[#020617] via-[#090d1f] to-[#020617] group"
             >
               
               {/* Circular gallery component mount */}
@@ -657,7 +738,8 @@ export function Index({ onNavigate }: IndexProps) {
                   items={SDG_GOALS.map((goal) => {
                     const count = projects.filter(p => p.sdgs.includes(goal.number)).length;
                     return {
-                      image: SDG_UNSPLASH_IMAGES[goal.number] || "https://images.unsplash.com/photo-1518081461904-9d8f136351c2?auto=format&fit=crop&q=80&w=600",
+                      id: goal.number,
+                      image: SDG_UNSPLASH_IMAGES[goal.number] || "https://images.unsplash.com/photo-1518081461904-9d8f136351c2?auto=format&fit=crop&q=90&w=1920",
                       text: `${goal.number}. ${goal.name.toUpperCase()}${count > 0 ? ` (${count})` : ''}`
                     };
                   })}
@@ -665,8 +747,9 @@ export function Index({ onNavigate }: IndexProps) {
                   textColor="#FAF9F6"
                   borderRadius={0.05}
                   scrollEase={0.06}
-                  font="bold 15px 'Uncut Sans', sans-serif"
+                  font={sdgGalleryFont}
                   scrollSpeed={2.5}
+                  onItemClick={(sdgId) => onNavigate('explore', String(sdgId))}
                 />
               </div>
 
@@ -684,7 +767,7 @@ export function Index({ onNavigate }: IndexProps) {
                   textColor="#34d399"
                   pillColor="#B24724"
                   hoveredTextColor="#ffffff"
-                  className="pointer-events-auto text-[9px] font-mono px-3 py-1 border-emerald-900/50"
+                  className="pointer-events-auto text-sm font-semibold px-4 py-2 border-emerald-700/60"
                 >
                   Matrix Directory ↗
                 </PillButton>
@@ -692,16 +775,19 @@ export function Index({ onNavigate }: IndexProps) {
 
 
             </motion.div>
+            <p className="text-center text-xs sm:text-sm text-slate-400 font-sans">
+              Scroll or drag to browse goals · Click a card to view matching campaigns
+            </p>
           </div>
         </div>
       </section>
 
       {/* 4. ACTIVE CAMPAIGNS GRID */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 my-28 sm:my-36">
+      <section className="page-container space-y-10 my-14 sm:my-20 lg:my-24">
         <Reveal direction="up" className="flex flex-col sm:flex-row justify-between items-baseline gap-2 pb-5 border-b border-slate-200/50">
           <div className="space-y-1.5">
             <label className="text-[10px] font-sans font-bold text-emerald-600 uppercase tracking-[0.25em]">Civic Campaigns</label>
-            <h2 className="text-2xl sm:text-3xl font-serif font-normal text-slate-900 tracking-tight">Featured Escrow-Driven Initiatives</h2>
+            <h2 className="text-2xl sm:text-3xl xl:text-4xl font-serif font-normal text-slate-900 tracking-tight">Featured Escrow-Driven Initiatives</h2>
           </div>
           <motion.button
             onClick={() => onNavigate('explore')}
@@ -714,7 +800,7 @@ export function Index({ onNavigate }: IndexProps) {
           </motion.button>
         </Reveal>
 
-        <StaggerChildren className="grid grid-cols-1 md:grid-cols-3 gap-6" stagger={0.1}>
+        <StaggerChildren className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" stagger={0.1}>
           {featured.map((p) => (
             <ProjectCard
               key={p.id}
@@ -723,65 +809,15 @@ export function Index({ onNavigate }: IndexProps) {
             />
           ))}
           {featured.length === 0 && (
-            <div className="col-span-3 text-center py-10 font-mono text-xs text-slate-400">
-              No active campaigns matching criteria. Launch your first now!
+            <div className="col-span-full text-center py-10 font-mono text-sm text-slate-400">
+              No campaigns to feature yet. Explore live projects or create your first campaign.
             </div>
           )}
         </StaggerChildren>
       </section>
 
-      {/* NEW ABOUT HERO BANNER (Premium Dark / Golden Asset Accent) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-28 sm:my-36">
-        <div className="bg-slate-950 rounded-3xl p-8 sm:p-12 md:p-16 border border-slate-900 shadow-2xl relative overflow-hidden">
-          {/* Background dark textured image */}
-          <div className="absolute inset-0 z-0 select-none pointer-events-none opacity-40">
-            <img
-              src={rolesDarkBgImage}
-              alt="Luxury abstract dark backdrop"
-              referrerPolicy="no-referrer"
-              className="object-cover w-full h-full object-center"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/95 to-slate-950/60" />
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center relative z-10">
-            <Reveal direction="left" className="lg:col-span-7 space-y-6 md:space-y-8 text-left">
-              <div>
-                <span className="inline-block bg-amber-500/10 text-amber-400 border border-amber-500/20 px-3.5 py-1.5 rounded-[4px] font-sans font-black text-[11px] uppercase tracking-wider select-none">
-                  Verified Trust & Escrow Guarantee
-                </span>
-              </div>
-              
-              <h2 className="text-3xl sm:text-5xl lg:text-5.5xl font-serif font-black text-white tracking-tight leading-[1.1] max-w-xl">
-                HopeWorks is a trusted leader in online fundraising.
-              </h2>
-              
-              <p className="text-sm sm:text-base text-slate-300 leading-relaxed font-sans font-light max-w-xl">
-                Our transparent, <span className="text-amber-300 font-semibold">milestone-locked escrow protocol</span> guards every donation. Funds are only disbursed when real-world evidence is audited and verified, ensuring your generosity transforms communities with <span className="text-amber-300 font-semibold">absolute integrity</span>.
-              </p>
-            </Reveal>
-
-            <Reveal direction="scale" className="lg:col-span-5 flex justify-center">
-              <div className="relative w-full max-w-md aspect-square lg:aspect-[4/5] rounded-[2rem] overflow-hidden shadow-2xl border border-white/10 group">
-                <img
-                  src={communityAboutImage}
-                  alt="Proud volunteers delivering drinking water to citizens"
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover rounded-[2rem] transform group-hover:scale-[1.03] transition-transform duration-700 ease-out"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
-              </div>
-            </Reveal>
-          </div>
-
-          {/* Golden glow visual pattern accents inside card */}
-          <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-amber-500/5 blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full bg-amber-500/5 blur-3xl pointer-events-none" />
-        </div>
-      </section>
-
       {/* 5. LIVE CIVIC LEDGER STREAM (Premium Horizontal Chronological Timeline) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10 my-16 sm:my-24 lg:my-32">
+      <section className="page-container space-y-8 sm:space-y-10 my-12 sm:my-16 lg:my-20">
         <Reveal direction="up" className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-slate-200/50 pb-6">
           <div className="space-y-3 max-w-2xl">
             <h2 className="text-3xl sm:text-4xl font-serif font-normal text-slate-950 tracking-tight">
