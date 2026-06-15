@@ -178,6 +178,8 @@ function AppContent() {
     if (newView === 'explore') {
       const sdgNum = id && /^\d+$/.test(id) ? parseInt(id, 10) : null;
       setExploreSdgFilter(sdgNum && sdgNum >= 1 && sdgNum <= 17 ? sdgNum : null);
+    } else {
+      setExploreSdgFilter(null);
     }
 
     if (newView === 'create_campaign') {
@@ -357,6 +359,7 @@ function AppContent() {
                       | undefined) ?? 'desk'
                   }
                   initialExploreSdg={exploreSdgFilter}
+                  onClearExploreSdg={() => setExploreSdgFilter(null)}
                   initialActiveTab={activeDesk as DeskTab | undefined}
                   initialProjectId={selectedProjectId || undefined}
                   initialProjectAction={projectDetailAction}

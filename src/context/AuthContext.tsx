@@ -164,7 +164,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     password: string,
     profileExtras?: { location?: string; fundraisingCategories?: string[] }
   ): Promise<UserProfile> => {
-    const selfSelected = selectedRoles.filter(r => ['entrepreneur', 'volunteer', 'donor'].includes(r));
+    const selfSelected = selectedRoles.filter(r =>
+      ['entrepreneur', 'volunteer', 'donor', 'project_manager'].includes(r)
+    );
     if (selfSelected.length > 1) {
       throw new Error('Validation Error: Users can select only one role during self-sign up.');
     }

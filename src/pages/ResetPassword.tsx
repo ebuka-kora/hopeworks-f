@@ -8,6 +8,8 @@ import { useToast } from '../context/ToastContext';
 import { supabase } from '../lib/supabase';
 import { useLoadingOverlay } from '../context/LoadingOverlayContext';
 import { PasswordInput } from '../components/PasswordInput';
+import { PasswordRequirements } from '../components/PasswordRequirements';
+import { getPasswordValidationError } from '../lib/passwordPolicy';
 
 interface ResetPasswordProps {
   onNavigate: (view: string) => void;
@@ -40,8 +42,9 @@ export function ResetPassword({ onNavigate }: ResetPasswordProps) {
     e.preventDefault();
     setError("");
 
-    if (password.length < 5) {
-      setError("Passphrase must contain at least 5 standard characters.");
+    const passwordError = getPasswordValidationError(password);
+    if (passwordError) {
+      setError(passwordError);
       return;
     }
 
@@ -119,12 +122,14 @@ export function ResetPassword({ onNavigate }: ResetPasswordProps) {
                   <Lock className="absolute left-3 top-3.5 h-4 w-4 text-slate-400 z-10 pointer-events-none" />
                   <PasswordInput
                     required
-                    placeholder="At least 5 characters"
+                    placeholder="Min. 8 chars with upper, lower, number & symbol"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full py-3 pl-10 border border-slate-200 outline-none rounded-xl focus:border-[#B24724] font-sans text-sm transition-colors text-slate-800"
+                    autoComplete="new-password"
                   />
                 </div>
+                <PasswordRequirements password={password} />
               </div>
 
               <div className="space-y-1.5">

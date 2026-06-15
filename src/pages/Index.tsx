@@ -516,9 +516,12 @@ export function Index({ onNavigate }: IndexProps) {
 
               <div className="hidden lg:block pt-1">
                 <PillButton
-                  variant="outline"
                   onClick={() => onNavigate('how_it_works')}
-                  className="py-3 px-6 text-xs font-sans shadow-xs"
+                  baseColor="#ffffff"
+                  textColor="#0f172a"
+                  pillColor="#B24724"
+                  hoveredTextColor="#ffffff"
+                  className="py-3 px-6 text-xs font-sans shadow-xs border border-white/30"
                 >
                   Learn How Escrow Works
                   <ArrowRight className="h-4 w-4" />
@@ -571,9 +574,12 @@ export function Index({ onNavigate }: IndexProps) {
 
             <div className="lg:hidden pt-1">
               <PillButton
-                variant="outline"
                 onClick={() => onNavigate('how_it_works')}
-                className="w-full py-3 text-xs font-sans shadow-xs justify-center"
+                baseColor="#ffffff"
+                textColor="#0f172a"
+                pillColor="#B24724"
+                hoveredTextColor="#ffffff"
+                className="w-full py-3 text-xs font-sans shadow-xs justify-center border border-white/30"
               >
                 Learn How Escrow Works
                 <ArrowRight className="h-4 w-4" />
