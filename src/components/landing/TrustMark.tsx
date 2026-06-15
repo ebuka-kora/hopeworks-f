@@ -50,12 +50,12 @@ export function TrustMark({ onNavigate: _onNavigate }: TrustMarkProps = {}) {
             key={idx}
             whileHover={{ x: 4 }}
             transition={springBouncy}
-            className="flex gap-4"
+            className="group flex gap-4 rounded-2xl p-3 -m-3 transition-colors duration-200 hover:bg-white/70"
           >
             <motion.div
               whileHover={{ rotate: [0, -5, 5, 0], scale: 1.08 }}
               transition={{ duration: 0.35 }}
-              className="shrink-0 p-3 bg-white border border-slate-100 rounded-xl h-fit shadow-xs"
+              className="shrink-0 p-3 bg-white border border-slate-100 rounded-xl h-fit shadow-xs transition-colors duration-200 group-hover:bg-emerald-50 group-hover:border-emerald-200/80"
             >
               {p.icon}
             </motion.div>

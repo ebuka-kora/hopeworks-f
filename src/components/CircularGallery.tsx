@@ -460,6 +460,7 @@ class App {
   screen: any;
   viewport: any;
   isDown = false;
+  pointerStartedInside = false;
   start = 0;
   dragDistance = 0;
   onItemClick?: (id: number | string) => void;
@@ -555,14 +556,32 @@ class App {
     });
   }
 
-  hitTest(clientX: number): Media | null {
+  getPointerCoords(e: any): { clientX: number; clientY: number } {
+    const target = e.changedTouches?.[0] ?? e.touches?.[0] ?? e;
+    return { clientX: target.clientX, clientY: target.clientY };
+  }
+
+  isInsideGallery(clientX: number, clientY: number): boolean {
+    const canvas = this.gl?.canvas;
+    if (!canvas) return false;
+    const rect = canvas.getBoundingClientRect();
+    return (
+      clientX >= rect.left &&
+      clientX <= rect.right &&
+      clientY >= rect.top &&
+      clientY <= rect.bottom
+    );
+  }
+
+  hitTest(clientX: number, clientY: number): Media | null {
     if (!this.medias?.length || !this.gl?.canvas) return null;
+    if (!this.isInsideGallery(clientX, clientY)) return null;
 
     const rect = this.gl.canvas.getBoundingClientRect();
     const x = clientX - rect.left;
     const fraction = x / rect.width;
     const worldX = (fraction - 0.5) * this.viewport.width;
-    const halfWidth = this.medias[0].width * 0.45;
+    const halfWidth = this.medias[0].width * 0.32;
 
     let closest: Media | null = null;
     let closestDist = Infinity;
@@ -580,28 +599,42 @@ class App {
   }
 
   onTouchDown(e: any) {
+    const { clientX, clientY } = this.getPointerCoords(e);
+    if (!this.isInsideGallery(clientX, clientY)) {
+      this.isDown = false;
+      this.pointerStartedInside = false;
+      return;
+    }
+
     this.isDown = true;
+    this.pointerStartedInside = true;
     this.dragDistance = 0;
     this.scroll.position = this.scroll.current;
-    this.start = e.touches ? e.touches[0].clientX : e.clientX;
+    this.start = clientX;
   }
 
   onTouchMove(e: any) {
-    if (!this.isDown) return;
-    const x = e.touches ? e.touches[0].clientX : e.clientX;
-    this.dragDistance = Math.max(this.dragDistance, Math.abs(this.start - x));
-    const distance = (this.start - x) * (this.scrollSpeed * 0.025);
+    if (!this.isDown || !this.pointerStartedInside) return;
+    const { clientX } = this.getPointerCoords(e);
+    this.dragDistance = Math.max(this.dragDistance, Math.abs(this.start - clientX));
+    const distance = (this.start - clientX) * (this.scrollSpeed * 0.025);
     this.scroll.target = this.scroll.position + distance;
   }
 
   onTouchUp(e: any) {
+    if (!this.isDown) return;
+
     const wasDragging = this.dragDistance > 12;
+    const startedInside = this.pointerStartedInside;
+    const { clientX, clientY } = this.getPointerCoords(e);
+    const releasedInside = this.isInsideGallery(clientX, clientY);
+
     this.isDown = false;
+    this.pointerStartedInside = false;
     this.onCheck();
 
-    if (!wasDragging && this.onItemClick && e) {
-      const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
-      const media = this.hitTest(clientX);
+    if (!wasDragging && startedInside && releasedInside && this.onItemClick) {
+      const media = this.hitTest(clientX, clientY);
       if (media?.itemId != null) {
         this.onItemClick(media.itemId);
       }
@@ -658,12 +691,11 @@ class App {
     this.boundOnTouchMove = this.onTouchMove.bind(this);
     this.boundOnTouchUp = this.onTouchUp.bind(this);
     window.addEventListener('resize', this.boundOnResize);
-    window.addEventListener('mousewheel', this.boundOnWheel);
-    window.addEventListener('wheel', this.boundOnWheel, { passive: true });
-    window.addEventListener('mousedown', this.boundOnTouchDown);
+    this.container.addEventListener('wheel', this.boundOnWheel, { passive: true });
+    this.container.addEventListener('mousedown', this.boundOnTouchDown);
     window.addEventListener('mousemove', this.boundOnTouchMove);
     window.addEventListener('mouseup', this.boundOnTouchUp);
-    window.addEventListener('touchstart', this.boundOnTouchDown, { passive: true });
+    this.container.addEventListener('touchstart', this.boundOnTouchDown, { passive: true });
     window.addEventListener('touchmove', this.boundOnTouchMove, { passive: true });
     window.addEventListener('touchend', this.boundOnTouchUp);
   }
@@ -671,12 +703,11 @@ class App {
   destroy() {
     window.cancelAnimationFrame(this.raf);
     window.removeEventListener('resize', this.boundOnResize);
-    window.removeEventListener('mousewheel', this.boundOnWheel);
-    window.removeEventListener('wheel', this.boundOnWheel);
-    window.removeEventListener('mousedown', this.boundOnTouchDown);
+    this.container.removeEventListener('wheel', this.boundOnWheel);
+    this.container.removeEventListener('mousedown', this.boundOnTouchDown);
     window.removeEventListener('mousemove', this.boundOnTouchMove);
     window.removeEventListener('mouseup', this.boundOnTouchUp);
-    window.removeEventListener('touchstart', this.boundOnTouchDown);
+    this.container.removeEventListener('touchstart', this.boundOnTouchDown);
     window.removeEventListener('touchmove', this.boundOnTouchMove);
     window.removeEventListener('touchend', this.boundOnTouchUp);
     if (this.renderer && this.renderer.gl && this.renderer.gl.canvas.parentNode) {

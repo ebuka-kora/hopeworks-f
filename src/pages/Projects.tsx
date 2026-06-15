@@ -37,6 +37,8 @@ export function Projects({ onNavigate, initialSdg = null }: ProjectsProps) {
   useEffect(() => {
     if (initialSdg != null && initialSdg >= 1 && initialSdg <= 17) {
       setSelectedSdg(initialSdg);
+    } else {
+      setSelectedSdg(null);
     }
   }, [initialSdg]);
 

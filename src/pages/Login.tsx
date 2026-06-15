@@ -7,6 +7,8 @@ import { UserRole } from '../types';
 import { Logo } from '../components/Logo';
 import { PillButton } from '../components/PillButton';
 import { PasswordInput } from '../components/PasswordInput';
+import { PasswordRequirements } from '../components/PasswordRequirements';
+import { getPasswordValidationError } from '../lib/passwordPolicy';
 import { useLoadingOverlay } from '../context/LoadingOverlayContext';
 import { ResponsiveImage } from '../components/ResponsiveImage';
 import { SDG_GOALS } from '../lib/sdg-data';
@@ -155,8 +157,9 @@ export function Login({
       setValidationError("Legal name is required.");
       return;
     }
-    if (password.length < 5) {
-      setValidationError("Access password must be at least 5 characters.");
+    const passwordError = getPasswordValidationError(password);
+    if (passwordError) {
+      setValidationError(passwordError);
       return;
     }
     if (roles.length === 0) {
@@ -665,6 +668,16 @@ export function Login({
                     activeColor: 'border-[#133863] bg-[#133863]/5',
                     badgeBg: 'bg-[#133863] text-white',
                     themeColor: 'text-[#133863]'
+                  },
+                  {
+                    id: 'project_manager',
+                    title: 'Project Manager',
+                    abbr: 'PM',
+                    desc: 'Independently audits milestone evidence on assigned campaigns and certifies escrow releases.',
+                    badge: 'PM',
+                    activeColor: 'border-[#704A0E] bg-[#704A0E]/5',
+                    badgeBg: 'bg-[#704A0E] text-white',
+                    themeColor: 'text-[#704A0E]'
                   }
                 ].map((opt) => {
                   const isChecked = roles.includes(opt.id as any);
@@ -793,9 +806,11 @@ export function Login({
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Minimum 5 characters"
+                    placeholder="Min. 8 chars with upper, lower, number & symbol"
                     className="w-full p-3.5 border border-slate-200 outline-none rounded-xl focus:border-emerald-750 text-sm shadow-sm"
+                    autoComplete="new-password"
                   />
+                  <PasswordRequirements password={password} className="pt-1" />
                 </div>
 
                 {/* Submit button */}

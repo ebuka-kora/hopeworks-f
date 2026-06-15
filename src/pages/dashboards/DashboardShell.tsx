@@ -65,6 +65,7 @@ interface DashboardShellProps {
   initialActiveTab?: RoleTab;
   initialProjectId?: string;
   initialExploreSdg?: number | null;
+  onClearExploreSdg?: () => void;
   initialProjectAction?: ProjectDetailAction | null;
   onProjectActionConsumed?: () => void;
   onDashboardStateChange?: (state: {
@@ -119,6 +120,7 @@ export function DashboardShell({
   initialActiveTab,
   initialProjectId,
   initialExploreSdg,
+  onClearExploreSdg,
   initialProjectAction,
   onProjectActionConsumed,
   onDashboardStateChange,
@@ -225,8 +227,9 @@ export function DashboardShell({
     }
     if (tab) setActiveTab(tab);
     setPanel('desk');
+    onClearExploreSdg?.();
     setMobileOpen(false);
-  }, [user, addToast]);
+  }, [user, addToast, onClearExploreSdg]);
 
   const handleConfirmLogout = useCallback(async () => {
     setShowLogoutConfirm(false);
@@ -251,10 +254,13 @@ export function DashboardShell({
         setPanel('desk');
         return;
       }
+      if (target !== 'explore') {
+        onClearExploreSdg?.();
+      }
       setPanel(target);
       setMobileOpen(false);
     },
-    [user, addToast]
+    [user, addToast, onClearExploreSdg]
   );
 
   const handleDashboardNavigate = useCallback(
@@ -267,6 +273,11 @@ export function DashboardShell({
           navigateToPanel('desk');
           break;
         case 'explore':
+          if (id && /^\d+$/.test(id)) {
+            onNavigate('explore', id);
+          } else {
+            onNavigate('explore');
+          }
           navigateToPanel('explore');
           break;
         case 'project_detail':
