@@ -271,17 +271,14 @@ export function EntrepreneurDashboard({ onNavigate }: DashboardProps) {
               onClick={() => onNavigate('project_detail', camp.id)}
               footer={
                 <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100" onClick={(e) => e.stopPropagation()}>
-                  <PillButton variant="muted" caps={false} onClick={() => handleExportCSV(camp)} className="flex-1 py-1.5 text-xs min-w-[4.5rem]">
-                    <FileSpreadsheet className="h-3 w-3 text-[#B24724]" />
+                  <PillButton variant="muted" caps={false} onClick={() => handleExportCSV(camp)} className="flex-1 py-1.5 text-xs min-w-[4.5rem]" Icon={FileSpreadsheet}>
                     CSV
                   </PillButton>
-                  <PillButton variant="muted" caps={false} onClick={() => handleExportPDF(camp)} className="flex-1 py-1.5 text-xs min-w-[4.5rem]">
-                    <Award className="h-3 w-3 text-[#B24724]" />
+                  <PillButton variant="muted" caps={false} onClick={() => handleExportPDF(camp)} className="flex-1 py-1.5 text-xs min-w-[4.5rem]" Icon={Award}>
                     PDF
                   </PillButton>
-                  <PillButton variant="brand" caps={false} onClick={() => onNavigate('project_detail', camp.id)} className="flex-1 py-1.5 text-xs min-w-[4.5rem]">
+                  <PillButton variant="brand" caps={false} onClick={() => onNavigate('project_detail', camp.id)} className="flex-1 py-1.5 text-xs min-w-[4.5rem]" Icon={ArrowUpRight}>
                     Open
-                    <ArrowUpRight className="h-3 w-3" />
                   </PillButton>
                 </div>
               }

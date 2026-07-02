@@ -13,19 +13,12 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.16em;
-  transition: border-color 0.3s ease, background-color 0.3s ease;
-}
-
-.p-hover-circle {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  border-radius: 50%;
-  background-color: var(--btn-pill, #000);
-  z-index: 1;
-  display: block;
-  pointer-events: none;
-  transform: translate3d(-50%, 0, 0) scale(0);
+  transition:
+    background-color 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.18s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .p-label-stack {
@@ -44,30 +37,49 @@
   justify-content: center;
   width: 100%;
   color: var(--btn-text, #000);
-  transition: color 0.35s ease;
+  transition: color 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.p-label-hover {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--btn-hover-text, #fff);
-  z-index: 3;
-  opacity: 0;
-  pointer-events: none;
+.p-btn-icon {
+  color: var(--btn-pill, currentColor);
+  transition: color 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.pill-btn:hover:not(:disabled) {
+/* Ring + fill hover — label/icons stay on top, both turn white */
+.pill-btn:hover:not(:disabled),
+.pill-btn.is-hovered:not(:disabled) {
+  background-color: var(--btn-pill, #000);
   border-color: var(--btn-pill, #000);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--btn-pill, #000) 22%, transparent);
+  transform: scale(1.03);
+}
+
+.pill-btn:hover:not(:disabled) .p-label,
+.pill-btn.is-hovered:not(:disabled) .p-label {
+  color: var(--btn-hover-text, #fff);
+}
+
+.pill-btn:hover:not(:disabled) .p-label svg,
+.pill-btn.is-hovered:not(:disabled) .p-label svg,
+.pill-btn:hover:not(:disabled) .p-btn-icon,
+.pill-btn.is-hovered:not(:disabled) .p-btn-icon {
+  color: var(--btn-hover-text, #fff) !important;
 }
 
 .pill-btn-normal {
   text-transform: none;
   letter-spacing: normal;
   font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pill-btn {
+    transition: background-color 0.01ms, border-color 0.01ms, color 0.01ms;
+  }
+
+  .pill-btn:hover:not(:disabled),
+  .pill-btn.is-hovered:not(:disabled) {
+    transform: none;
+    box-shadow: none;
+  }
 }

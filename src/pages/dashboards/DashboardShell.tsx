@@ -305,7 +305,7 @@ export function DashboardShell({
     [navigateToPanel, onNavigate]
   );
 
-  if (loading) return <PulseBeatLoader message="Verifying your session" />;
+  if (loading && !user) return <PulseBeatLoader message="Verifying your session" />;
   if (!user) return null;
 
   const tabs = [
@@ -680,7 +680,7 @@ export function DashboardShell({
         </header>
 
         <div className="flex-1 overflow-y-auto min-h-0 bg-[#FAF9F6]">
-          {needsProjectsData && projectsLoading ? (
+          {needsProjectsData && projectsLoading && projects.length === 0 ? (
             <PulseBeatLoader message="Loading workspace" fullScreen={false} />
           ) : (
             <AnimatePresence mode="wait">

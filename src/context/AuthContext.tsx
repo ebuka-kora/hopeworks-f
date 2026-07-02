@@ -35,6 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const ensureProfileInFlight = useRef<Promise<UserProfile | null> | null>(null);
   const loginInProgress = useRef(false);
+  const sessionBootstrapped = useRef(false);
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -105,6 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session) {
         const p = await ensureProfile();
         if (p?.roles.includes('admin')) await refreshUsers();
+        sessionBootstrapped.current = true;
       }
       setLoading(false);
     });
@@ -113,29 +115,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (event === 'SIGNED_OUT') {
         setUser(null);
         setUsers([]);
+        sessionBootstrapped.current = false;
         setLoading(false);
+        return;
+      }
+
+      if (event === 'TOKEN_REFRESHED' && session) {
+        void fetchProfile();
         return;
       }
 
       if (!session || (event !== 'INITIAL_SESSION' && event !== 'SIGNED_IN')) return;
       if (loginInProgress.current && event === 'SIGNED_IN') return;
+      if (sessionBootstrapped.current && event === 'SIGNED_IN') return;
 
       // Defer async auth work — calling supabase.auth inside this callback deadlocks signInWithPassword.
       setTimeout(() => {
         void (async () => {
-          setLoading(true);
+          const showLoader = !sessionBootstrapped.current;
+          if (showLoader) setLoading(true);
           try {
             const p = await ensureProfile();
             if (p?.roles.includes('admin')) await refreshUsers();
+            sessionBootstrapped.current = true;
           } finally {
-            setLoading(false);
+            if (showLoader) setLoading(false);
           }
         })();
       }, 0);
     });
 
     return () => subscription.unsubscribe();
-  }, [ensureProfile, refreshUsers]);
+  }, [ensureProfile, fetchProfile, refreshUsers]);
 
   const login = async (email: string, passwordString: string): Promise<UserProfile> => {
     loginInProgress.current = true;
@@ -151,6 +162,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('Profile not found after login. Run `cd backend && npm run seed` if using demo accounts.');
       }
       if (profile.roles.includes('admin')) await refreshUsers();
+      sessionBootstrapped.current = true;
       return profile;
     } finally {
       loginInProgress.current = false;
@@ -243,6 +255,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const profile = await fetchProfile();
     if (!profile) throw new Error('Profile not found after signup');
+    sessionBootstrapped.current = true;
     return profile;
   };
 
@@ -288,6 +301,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signOut();
     setUser(null);
     setUsers([]);
+    sessionBootstrapped.current = false;
   };
 
   const updateProfile = async (updates: Partial<UserProfile>) => {

@@ -308,7 +308,7 @@ function AppContent() {
         ? 'h-dvh max-h-dvh overflow-hidden'
         : 'min-h-screen justify-between'
     }`}>
-      {authLoading && <PulseBeatLoader message="Verifying your session" />}
+      {authLoading && !user && <PulseBeatLoader message="Verifying your session" />}
 
       {/* NAVBAR */}
       {view !== 'home' && view !== 'dashboard' && view !== 'all_dashboards' && view !== 'login' && view !== 'register' && view !== 'forgot_password' && view !== 'reset_password' && (

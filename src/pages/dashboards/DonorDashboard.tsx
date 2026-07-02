@@ -201,12 +201,10 @@ export function DonorDashboard({ onNavigate }: DashboardProps) {
       <DashboardToolbar search={searchTerm} onSearchChange={setSearchTerm} placeholder="Search pledges...">
         {myDonations.length > 0 && (
           <>
-            <PillButton variant="muted" caps={false} onClick={() => handleExportCSV()} className="px-3 py-2 text-xs">
-              <FileSpreadsheet className="h-4 w-4 text-[#B24724]" />
+            <PillButton variant="muted" caps={false} onClick={() => handleExportCSV()} className="px-3 py-2 text-xs" Icon={FileSpreadsheet}>
               CSV
             </PillButton>
-            <PillButton variant="muted" caps={false} onClick={() => handleExportPDF()} className="px-3 py-2 text-xs">
-              <Download className="h-4 w-4 text-[#B24724]" />
+            <PillButton variant="muted" caps={false} onClick={() => handleExportPDF()} className="px-3 py-2 text-xs" Icon={Download}>
               PDF
             </PillButton>
           </>

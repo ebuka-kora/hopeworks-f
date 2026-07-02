@@ -2,13 +2,18 @@ import { useState, useEffect, useCallback } from 'react';
 import { apiFetch } from '../lib/apiClient';
 import { Project } from '../types';
 
+let cachedProjects: Project[] | null = null;
+
 export function useProjectsStore() {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [projects, setProjects] = useState<Project[]>(cachedProjects ?? []);
+  const [loading, setLoading] = useState(cachedProjects === null);
 
   const refresh = useCallback(async () => {
+    const isInitialLoad = cachedProjects === null;
+    if (isInitialLoad) setLoading(true);
     try {
       const data = await apiFetch<Project[]>('/api/projects');
+      cachedProjects = data;
       setProjects(data);
     } catch (e) {
       console.error('Failed to fetch projects:', e);
