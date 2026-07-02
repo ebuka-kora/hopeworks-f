@@ -47,8 +47,9 @@ export function Notifications({ onNavigate }: NotificationsProps) {
             caps={false}
             onClick={markAllAsRead}
             className="px-4 py-2 text-xs font-mono shrink-0"
+            Icon={CheckCircle}
           >
-            <CheckCircle className="h-4 w-4 text-[#B24724]" /> Mark All Read
+            Mark All Read
           </PillButton>
         )}
       </motion.div>

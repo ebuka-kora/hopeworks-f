@@ -522,9 +522,9 @@ export function Index({ onNavigate }: IndexProps) {
                   pillColor="#B24724"
                   hoveredTextColor="#ffffff"
                   className="py-3 px-6 text-xs font-sans shadow-xs border border-white/30"
+                  Icon={ArrowRight}
                 >
                   Learn How Escrow Works
-                  <ArrowRight className="h-4 w-4" />
                 </PillButton>
               </div>
             </Reveal>
@@ -580,9 +580,9 @@ export function Index({ onNavigate }: IndexProps) {
                 pillColor="#B24724"
                 hoveredTextColor="#ffffff"
                 className="w-full py-3 text-xs font-sans shadow-xs justify-center border border-white/30"
+                Icon={ArrowRight}
               >
                 Learn How Escrow Works
-                <ArrowRight className="h-4 w-4" />
               </PillButton>
             </div>
           </div>

@@ -1,6 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { gsap } from 'gsap';
 import { springSnappy } from '../lib/motion';
 import { useLoadingOverlay } from '../context/LoadingOverlayContext';
 import { ButtonLoader } from './ButtonLoader';
@@ -94,7 +93,6 @@ export const PillButton: React.FC<PillButtonProps> = ({
   onClick,
   className = '',
   variant,
-  ease = 'power3.easeOut',
   baseColor,
   pillColor,
   textColor,
@@ -107,6 +105,7 @@ export const PillButton: React.FC<PillButtonProps> = ({
   caps = true,
 }) => {
   const loadingOverlay = useLoadingOverlay();
+  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     if (!loading || overlay === false || !loadingOverlay) return;
@@ -122,77 +121,6 @@ export const PillButton: React.FC<PillButtonProps> = ({
   const resolvedHoverText = hoveredTextColor ?? variantStyle?.hoveredTextColor ?? '#ffffff';
   const borderClass = variantStyle?.borderClass ?? '';
 
-  const containerRef = useRef<HTMLButtonElement>(null);
-  const circleRef = useRef<HTMLSpanElement>(null);
-  const tlRef = useRef<gsap.core.Timeline | null>(null);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    const circle = circleRef.current;
-    if (!el || !circle) return;
-
-    const layout = () => {
-      const rect = el.getBoundingClientRect();
-      const { width: w, height: h } = rect;
-
-      const R = ((w * w) / 4 + h * h) / (2 * h);
-      const D = Math.ceil(2 * R) + 4;
-      const delta = Math.ceil(R - Math.sqrt(Math.max(0, R * R - (w * w) / 4))) + 1;
-      const originY = D - delta;
-
-      circle.style.width = `${D}px`;
-      circle.style.height = `${D}px`;
-      circle.style.bottom = `-${delta}px`;
-
-      gsap.set(circle, {
-        xPercent: -50,
-        scale: 0,
-        transformOrigin: `50% ${originY}px`,
-      });
-
-      const label = el.querySelector('.p-label');
-      const hoverLabel = el.querySelector('.p-label-hover');
-
-      if (label) gsap.set(label, { y: 0 });
-      if (hoverLabel) gsap.set(hoverLabel, { y: h + 12, opacity: 0 });
-
-      tlRef.current?.kill();
-      const tl = gsap.timeline({ paused: true });
-
-      tl.to(circle, { scale: 1.25, xPercent: -50, duration: 0.6, ease, overwrite: 'auto' }, 0);
-
-      if (label) {
-        tl.to(label, { y: -(h + 8), duration: 0.6, ease, overwrite: 'auto' }, 0);
-      }
-
-      if (hoverLabel) {
-        gsap.set(hoverLabel, { y: Math.ceil(h + 10), opacity: 0 });
-        tl.to(hoverLabel, { y: 0, opacity: 1, duration: 0.6, ease, overwrite: 'auto' }, 0);
-      }
-
-      tlRef.current = tl;
-    };
-
-    const timeoutId = setTimeout(layout, 50);
-    const onResize = () => layout();
-    window.addEventListener('resize', onResize);
-
-    return () => {
-      clearTimeout(timeoutId);
-      window.removeEventListener('resize', onResize);
-    };
-  }, [children, ease]);
-
-  const handleEnter = () => {
-    if (disabled || loading) return;
-    tlRef.current?.play();
-  };
-
-  const handleLeave = () => {
-    if (disabled || loading) return;
-    tlRef.current?.reverse();
-  };
-
   const cssVars = {
     '--btn-base': resolvedBase,
     '--btn-pill': resolvedPill,
@@ -205,7 +133,7 @@ export const PillButton: React.FC<PillButtonProps> = ({
       {showInlineLoader ? (
         <ButtonLoader className="h-3.5 w-3.5" />
       ) : (
-        Icon && <Icon className="h-4 w-4 shrink-0" />
+        Icon && <Icon className="p-btn-icon h-4 w-4 shrink-0" />
       )}
       {children}
     </span>
@@ -215,25 +143,24 @@ export const PillButton: React.FC<PillButtonProps> = ({
     <motion.button
       id={id}
       type={type}
-      ref={containerRef}
       onClick={onClick}
-      onMouseEnter={handleEnter}
-      onMouseLeave={handleLeave}
-      whileTap={loading || disabled ? undefined : { scale: 0.96 }}
+      onMouseEnter={() => {
+        if (!disabled && !loading) setIsHovered(true);
+      }}
+      onMouseLeave={() => setIsHovered(false)}
+      whileTap={loading || disabled ? undefined : { scale: 0.97 }}
       transition={springSnappy}
       disabled={disabled || loading}
       aria-busy={loading}
       className={`pill-btn ${caps ? '' : 'pill-btn-normal'} ${borderClass} ${className} ${
-        loading ? 'opacity-90 cursor-wait' : ''
-      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+        isHovered ? 'is-hovered' : ''
+      } ${loading ? 'opacity-90 cursor-wait' : ''} ${
+        disabled ? 'opacity-50 cursor-not-allowed' : ''
+      }`}
       style={cssVars}
     >
-      <span className="p-hover-circle" ref={circleRef} />
       <span className="p-label-stack">
         <span className="p-label">{labelContent}</span>
-        <span className="p-label-hover" aria-hidden="true">
-          {labelContent}
-        </span>
       </span>
     </motion.button>
   );

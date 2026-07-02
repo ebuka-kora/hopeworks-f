@@ -83,8 +83,8 @@ export function BadgeCard({ badge }: BadgeCardProps) {
             caps={false}
             onClick={() => setShowCertificate(true)}
             className="w-full py-2 text-[11px] font-mono"
+            Icon={Download}
           >
-            <Download className="h-3.5 w-3.5" />
             View certificate
           </PillButton>
         </div>
